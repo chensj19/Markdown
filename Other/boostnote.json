@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "key": "09bde22e0365da2538c0",
+      "color": "#1278BD",
+      "name": "Default"
+    },
+    {
+      "key": "3bfa9db79a7735408020",
+      "color": "#FF8E00",
+      "name": "work"
+    },
+    {
+      "key": "801864bcf2a58a38c21d",
+      "color": "#FF8E00",
+      "name": "learn"
+    }
+  ],
+  "version": "1.0"
+}
