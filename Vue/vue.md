@@ -1326,7 +1326,7 @@ const store = new Vuex.Store({
 
 启用了命名空间的 getter 和 action 会收到局部化的 `getter`，`dispatch` 和 `commit`。换言之，你在使用模块内容（module assets）时不需要在同一模块内额外添加空间名前缀。更改 `namespaced` 属性后不需要修改模块内的代码。
 
-#### ##### 在带命名空间的模块内访问全局内容（Global Assets）
+##### 在带命名空间的模块内访问全局内容（Global Assets）
 
 如果你希望使用全局 state 和 getter，`rootState` 和 `rootGetter` 会作为第三和第四参数传入 getter，也会通过 `context` 对象的属性传入 action。
 
