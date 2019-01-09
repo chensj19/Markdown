@@ -21,4 +21,30 @@
   cnpm i vue -S | cnpm i vue-loader vue-template-compiler -D
   ```
 
+* 配置webpack-dev-server
 
+  ```json
+   "dev": "webpack-dev-server --inline --progress --config webpack.config.js"
+   "dev2": "webpack-dev-server --inline --hot --open --config webpack.config.js"
+   "build": "webpack"
+  ```
+
+## Vue 简介
+
+* 2014年诞生，react于2013年诞生，angular于2009年诞生
+* 核心概念：
+  * angular：模块化 双向数据绑定 （基于脏检测：一个数组（$watch））
+  * vue：组件化     双向数据流（基于ES5的defineProperty来实现），IE9才支持
+    * 开发一个登陆的模块，登陆需要一个显示头部、中部、底部
+    * 组件：组合起来的一个部件（头部、中部、底部）
+    * _细分代码_
+      * 头部：页面、 样式、 动态效果
+      * 代码: template  style   script  一一对应
+
+* 框架对比，学完VUE后再看
+
+## 双向数据流
+
+* 1向：js内存属性发生改变，影响页面的变化
+
+* 1向：页面的改变影响js内存属性的改变
