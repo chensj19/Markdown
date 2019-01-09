@@ -14,6 +14,11 @@
   * vue-loader -> vue-template-compile -> vue 
 
     * vue-loader  依赖   vue-template-compile  代码中依赖 vue
-  
-* 
+
+* 安装依赖
+
+  ```bash
+  cnpm i vue -S | cnpm i vue-loader vue-template-compiler -D
+  ```
+
 

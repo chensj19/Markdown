@@ -193,11 +193,98 @@
 * 读写文件
 
   1. 引入`fs`模块
-  2. 
+
+     ```js
+     const fs = require('fs')
+     ```
+
+  2. 读取文件
+
+     ```javascript
+     // 第一个参数为文件路径
+     // 第二个参数为回调函数
+     //  error 读取错误
+     //  data  读取的数据
+     fs.readFile('./helloworld.js', (err, data) => {
+         if (err) {
+             console.log('文件读取报错')
+         } else {
+             // 获取的是16进制的数据
+             console.log(data)
+             // 转化为可以识别的代码
+             console.log(data.toString())
+         }
+     })
+     ```
+
+   3. 写文件
+
+      ```javascript
+      const fs = require('fs')
+      /**
+       * 第一个参数 文件路径
+       * 第二个参数 文件写入内容
+       * 第三个参数 回调函数
+       */
+      fs.writeFile('./data/a.txt', '这是文件内容', (err) => {
+          if (err) {
+              console.log('文件写入报错')
+          }
+          console.log('文件写入成功')
+      })
+      ```
 
 * http
 
+  * 简单服务器
+
+    ```js
+    const http = require('http')
+    const url = require('url')
+    
+    const app = http.createServer((req, res) => {
+        const path = req.url
+        //console.log(req);
+        console.log(path);
+        //转换url
+        const result = url.parse(path, true) //第一个参数为地址，第二个参数true表示将get传值转换为对象
+        console.log(result);
+        res.end('Hello Node.js!');
+    })
+    
+    app.listen(8080)
+    
+    console.log('Server running at http://127.0.0.1:8080')
+    ```
+
+
 ## 3.Node中的JavaScript
+
+* EcmaScript
+
+  * 与浏览器不一样：没有BOM DOM 
+
+* 核心模块
+
+* 第三方模块
+
+* 用户自定义模块
+
+### 3.1 核心模块
+
+​	Node为JavaScript提供了许多服务器级别的API，这些API绝大多数都被包装到一个具名的核心模块中，比如 `fs` `http` `os` `path`
+
+```js
+const fs = require('fs')
+```
+
+### 3.2 用户自定义模块
+
+* require
+
+* exports
+
+### 3.3 第三方模块
 
 
 
