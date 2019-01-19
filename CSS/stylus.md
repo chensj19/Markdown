@@ -144,3 +144,4 @@ image-size(‘aa.png’)	20px 30px	获取图片宽高
 1. 使用 `@extend` 将公共样式抽取, 用子类继承; 在html中可以少写一个类名 ,如 `class="btn btn-primary"` 只需要写成 `class="btn-primary"` 
 
 ![](https://img-blog.csdn.net/20180526004238570?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2x5dF9hbmd1bGFyanM=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+

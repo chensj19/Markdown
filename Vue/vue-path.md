@@ -60,3 +60,7 @@
 * v-show 是元素是否显示或者隐藏
 
 * v-model 双向数据绑定，v-bind是单向数据绑定（内存js改变影响页面）`:value='model'`
+
+## class 结合v-bind使用
+
+* 需要根据可变表达式的结果来给class赋值，就需要使用v-bind
