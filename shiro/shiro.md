@@ -97,7 +97,23 @@ Shiro 把Shiro 开发团队称为“应用程序的四大基石”——身份�
         <filter-name>shiroFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+<servlet>
+        <servlet-name>spring-mvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath*:spring/*.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>spring-mvc</servlet-name>
+        <!--使用/*将会拦截jsp-->
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
 ```
+
+> spring-mvc的时候注意设置`<url-pattern>`如果设置为`/*`,则会拦截JSP
 
 ### 3.2 spring-shiro.xml
 
@@ -253,6 +269,47 @@ URL匹配采取**第一次**匹配优先模式，即是从头开始按照第一�
 * session相关的Filter
   * noSessionCreation(NoSessionCreationFilter.class)
 
+### 4.2  Realms 传递
+
+​	在Shiro中Realms会进行传递，即在SecurityManager中配置的Realms会传递给Authenticator(认证器)和Authorizator(授权器)，源码中说明为
+
+```java
+ /**
+     * Internal collection of <code>Realm</code>s used for all authentication and authorization operations.
+     */
+    private Collection<Realm> realms;
+```
+
+则，在设置Realms的时候，最好的方式是将Realms设置给SecurityManager
+
+因此上面的多Realm设置应该修改为如下配置：
+
+```xml
+ <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- shiro缓存管理器 -->
+        <property name="cacheManager" ref="shiroEhcacheManager"/>
+        <!-- 单Realm配置-->
+        <!--<property name="realm" ref="shiroRealm"/>-->
+        <!--多Realm配置 指定认证器-->
+        <property name="authenticator" ref="modularRealmAuthenticator"/>
+        <!--多Realm配置 配置多realm-->
+        <property name="realms">
+            <list>
+                <ref bean="shiroRealm"/>
+                <ref bean="secondShiroRealm"/>
+            </list>
+        </property>
+    </bean>
+ <!--配置认证器-->
+    <bean id="modularRealmAuthenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+        <!-- 认证策略修改 -->
+        <property name="authenticationStrategy">
+            <bean class="org.apache.shiro.authc.pam.AllSuccessfulStrategy"/>
+        </property>
+    </bean>
+```
+
+
 
 ## 5.认证
 
@@ -384,46 +441,6 @@ URL匹配采取**第一次**匹配优先模式，即是从头开始按照第一�
   * 代码在`ModularRealmAuthenticator.doMultiRealmAuthentication()`第235行
   * 通过修改Realm中的principal字段的值，可以获取多个身份认证的信息
 
-#### 5.2.4  Realms 传递
-
-​	在Shiro中Realms会进行传递，即在SecurityManager中配置的Realms会传递给Authenticator(认证器)和authorizator(授权器)，源码中说明为
-
-```java
- /**
-     * Internal collection of <code>Realm</code>s used for all authentication and authorization operations.
-     */
-    private Collection<Realm> realms;
-```
-
-则，在设置Realms的时候，最好的方式是将Realms设置给SecurityManager
-
-因此上面的多Realm设置应该修改为如下配置：
-
-```xml
- <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
-        <!-- shiro缓存管理器 -->
-        <property name="cacheManager" ref="shiroEhcacheManager"/>
-        <!-- 单Realm配置-->
-        <!--<property name="realm" ref="shiroRealm"/>-->
-        <!--多Realm配置 指定认证器-->
-        <property name="authenticator" ref="modularRealmAuthenticator"/>
-        <!--多Realm配置 配置多realm-->
-        <property name="realms">
-            <list>
-                <ref bean="shiroRealm"/>
-                <ref bean="secondShiroRealm"/>
-            </list>
-        </property>
-    </bean>
- <!--配置认证器-->
-    <bean id="modularRealmAuthenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
-        <!-- 认证策略修改 -->
-        <property name="authenticationStrategy">
-            <bean class="org.apache.shiro.authc.pam.AllSuccessfulStrategy"/>
-        </property>
-    </bean>
-```
-
 
 
 
@@ -502,15 +519,146 @@ URL匹配采取**第一次**匹配优先模式，即是从头开始按照第一�
 
 ### 7.2 授权方式
 
-* 编程式：通过if、else授权代码完成
+* 编程式：通过if/else授权代码完成
 * 注解式：通过在执行Java方法上面放置相应的注解来完成，没有权限就抛出异常
 * JSP、GSP标签：在JSP/GSP页面通过相应的标签来完成
 
+### 7.3 权限配置
 
+shiro在shiroFilter中配置
 
+```xml
+<property name="filterChainDefinitions">
+    <value>
+        / = anon
+        /login.jsp = anon
+        /shiro/login = anon
+        /shiro/logout = logout
 
+        /user.jsp = roles[user]
+        /admin.jsp = roles[admin]
+        /** = authc
+    </value>
+</property>
+```
 
+> 多Realm授权时候，则只要有一个返回成功即完成授权
+>
+> 代码实现：org.apache.shiro.authz.ModularRealmAuthorizer#hasRole
 
+### 7.4 授权实现
+
+1. 授权需要继承`org.apache.shiro.realm.AuthorizingRealm`，并实现`org.apache.shiro.realm.AuthorizingRealm#doGetAuthorizationInfo`方法，这个方法就是是针对授权的
+2. `AuthorizingRealm`是继承至`AuthenticatingRealm`,所有认证和授权只需要继承`AuthorizingRealm`即可，同时实现两个抽象方法，即可实现授权和认证的Realm
+3. 实现代码
+
+```java
+public class ShiroRealm extends AuthorizingRealm {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ShiroRealm.class);
+    /**
+     * 授权方法
+     * @param principalCollection 登录用户信息集合
+     * @return
+     */
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        System.out.println("ShiroRealm doGetAuthorizationInfo()...");
+        LOG.info("class:{},methods:{}",getClass(),"doGetAuthorizationInfo");
+        // 1、从principalCollection中获取用户信息
+        Object principal = principalCollection.getPrimaryPrincipal();
+        // principal是根据Realm中配置的顺序来进行加载的，getPrimaryPrincipal是取第一个
+        LOG.info("PrimaryPrincipal:{}",principal);
+        LOG.info("PrincipalCollection:{}",principalCollection);
+        // 2、利用登录的用户来获取当前登录用户的角色或者权限信息
+        Set<String> roles = new HashSet<>();
+        roles.add("user");
+        if("admin".equals(principal)){
+            roles.add("admin");
+        }
+        // 3、创建SimpleAuthorizationInfo，并设置roles属性
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo(roles);
+        // 4、返回SimpleAuthorizationInfo
+        return info;
+    }
+    // ...... 其它代码省略
+}
+```
+
+### 7.5 shiro 标签
+
+* `<shiro:guest>` 用户没有登录显示的信息
+
+  ```jsp
+  <shiro:guest>
+      guest标签
+  </shiro:guest>
+  ```
+
+* `<shiro:user>` 用户已经登录/记住我登录后显示的信息
+
+  ```jsp
+  <shiro:user>
+      当前用户： <shiro:principal/>
+  </shiro:user>
+  ```
+
+* `<shiro:principal>` 用户登录后当前用户信息
+
+  ```jsp
+  <shiro:principal/>
+  ```
+
+* `<shiro:authenticated>` 用户登录成功后，即`Subject.login()`登录成功，**不是记住我登录的**
+
+* `<shiro:notAuthenticated>` 用户未进行身份验证，即没有通过`Subject.login()`进行登录，包含**记住我自动登录**也属于为进行身份验证
+
+* `<shiro:hasRole>` 用户具有某个角色的时，将显示body内容
+
+* `<shiro:hasAnyRoles>` 用户具有任意一个角色的时候，将显示body内容
+
+* `<shiro:lacksRole>` 用户没有该角色的时候，将显示body内容
+
+* `<shiro:hasPermission>` 用户具有某个权限的时，将显示body内容
+
+* `<shiro:lacksPermission>` 用户没有该权限的时候，将显示body内容
+
+### 7.6 注解使用
+
+* `@RequiresGuest`  当前subject没有身份验证，即没有登录
+
+* `@RequiresUser` 表示当前Subject已经身份验证或者通过记住我登录的
+
+* `@RequiresAuthentication` 表示当前用户已经身份验证，`Subject.isAuthenticated()`返回true
+
+* `@RequiresRoles(value = {"admin"})` 表示当前用户需要`admin`角色
+
+* `@RequiresRoles(value = {"user","admin"},logical = Logical.OR)` 表示当前用户需要admin**或**user角色
+
+* `@RequiresRoles(value = {"user","admin"},logical = Logical.AND)` 表示当前用户需要admin**和**user角色
+
+* `@RequiresPermissions(value = {"admin:*","user:*"},logical = Logical.AND)` 示当前用户需要admin:\***和**admin:\*权限
+
+  ```java
+  @RequestMapping(value = "/user")
+  @RequiresUser
+  @RequiresRoles(value = {"user","admin"},logical = Logical.OR)
+  public String userIndex(){
+      return "redirect:/user.jsp";
+  }
+  
+  @RequestMapping(value = "/admin")
+  @RequiresAuthentication
+  @RequiresRoles(value = {"admin"})
+  public String adminIndex(){
+      return "redirect:/admin.jsp";
+  }
+  
+  ```
+
+  
+
+## 8.会话管理
 
 
 
