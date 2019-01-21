@@ -656,9 +656,31 @@ public class ShiroRealm extends AuthorizingRealm {
   
   ```
 
-  
 
 ## 8.会话管理
+
+### 8.1 session的API
+
+* `Subject.getSession(boolean) `获取会话，
+  * `boolean `为`true ` 当前没有创建session对象，会创建一个
+  * `boolean` 为`false` 当前没有则返回null
+* `session.getId()`: 获取当前会话的唯一标识
+* `session.getHost()`:获取当前Subject的主机地址
+* `session.getTimeOut()`&`session.setTimeOut(毫秒值)`： 获取或设置当前session的过期时间
+* `session.getStartTimestamp()`&`session.getLastAccessTime()`：获取session启动时间或最后更新时间；
+  * 如果是JavaSE应用需要自己定期调用`session.touch()`去更新最后访问时间
+  * 如果是Web应用，每次进入shiroFilter会自动调用`session.touch()`去更新最后访问时间
+* `session.touch()`&`session.stop() `更新会话最后访问时间或销毁会话
+  * Subject.logout会自动调用stop()方法销毁会话
+  * 在Web应用中，调用HttpSession.invalidate()也会自动调用shiro的session.stop() 方法进行会话的销毁
+* `session.getAttribute()`&`session.setAttribute(key,value)`&`session.removeAttribute(key) `设置、获取和移除会话属性
+* 会话监听器
+  * 用于监听会话创建、过期及停止事件
+  * onStart
+  * onStop
+  * onExpiration
+
+### 8.2 session 使用
 
 
 
@@ -688,4 +710,16 @@ public class ShiroRealm extends AuthorizingRealm {
 解决中文乱码问题
 
 在部分版本的Servlet容器中对于<%@page %>无法识别，导致无法设置编码，则需要使用上面的方式解决乱码问题
+
+#### jsp返回为jsp文件内容
+
+spring的访问文件配置的url-pattern错误
+
+```xml
+ <url-pattern>/</url-pattern>
+```
+
+
+
+
 
