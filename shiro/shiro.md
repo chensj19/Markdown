@@ -682,9 +682,107 @@ public class ShiroRealm extends AuthorizingRealm {
 
 ### 8.2 session 使用
 
+* 在web应用中可以在Controller层将参数放入HTTPSession中，在Service层通过shiro来获取session存储的数据
+
+```java
+//	Controller
+@RequestMapping(value = "/testAnnotation")
+public String testAnnotation(HttpSession session){
+    // 测试session使用
+    session.setAttribute("method","testSession");
+    shiroService.testShiroAnnotation();
+    return "redirect:/list.jsp";
+}
+// Service
+@RequiresRoles(value = {"admin","user"},logical = Logical.OR)
+public void testShiroAnnotation(){
+    System.out.println("test method,time:"+new Date());
+    /**
+     * 从Shiro中获取session中数据
+     */
+    Session session = SecurityUtils.getSubject().getSession();
+    Object val = session.getAttribute("method");
+    System.out.println(getClass()+" Service session value: "+val);
+}
+```
 
 
 
+## 9.缓存
+
+在shiro中，`DefaultSecurityManager`会自动检测相应的对象(如Realm)是否实现了`CacheManagerAware`,并自动的将其注入到`CacheManager`中，在认证与授权的Realm中，已经实现了`CacheManagerAware`，所以会自动使用缓存
+
+缓存使用的意义在于使用减少连接数据库的次数
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache updateCheck="false" name="shiroCache">
+
+    <!--<diskStore path="E:\shiro\ehcache" />-->
+    <diskStore path="java.io.tmpdir"/>
+
+    <!--
+    eternal：缓存中对象是否为永久的，如果是，超时设置将被忽略，对象从不过期。
+    maxElementsInMemory：缓存中允许创建的最大对象数
+    overflowToDisk：内存不足时，是否启用磁盘缓存。
+    timeToIdleSeconds：缓存数据的钝化时间，也就是在一个元素消亡之前，  两次访问时间的最大时间间隔值，这只能在元素不是永久驻留时有效，如果该值是 0 就意味着元素可以停顿无穷长的时间。
+    timeToLiveSeconds：缓存数据的生存时间，也就是一个元素从构建到消亡的最大时间间隔值，这只能在元素不是永久驻留时有效，如果该值是0就意味着元素可以停顿无穷长的时间。
+    memoryStoreEvictionPolicy：缓存满了之后的淘汰算法。
+    diskPersistent:设定在虚拟机重启时是否进行磁盘存储，默认为false
+    diskExpiryThreadIntervalSeconds: 属性可以设置该线程执行的间隔时间(默认是120秒，不能太小
+    1 FIFO，先进先出
+    2 LFU，最少被使用，缓存的元素有一个hit属性，hit值最小的将会被清出缓存。
+    3 LRU，最近最少使用的，缓存的元素有一个时间戳，当缓存容量满了，而又需要腾出地方来缓存新的元素的时候，那么现有缓存元素中时间戳离当前时间最远的元素将被清出缓存。
+    -->
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            overflowToDisk="false"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="120"
+    />
+    <!--认证缓存-->
+    <cache name="authenticationCache"
+           eternal="true"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true"
+    />
+    <!--授权缓存-->
+    <cache name="authentizationCache"
+           eternal="true"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true"
+    />
+    <!--session 缓存-->
+    <cache name="activeSessionCache"
+           maxElementsInMemory="10000"
+           eternal="true"
+           overflowToDisk="false"
+           diskPersistent="true"
+           diskExpiryThreadIntervalSeconds="600"/>
+
+    <cache name="shiro.authorizationCache"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+</ehcache>
+```
+
+可以在Realm标签中指定cache的名称来使用指定缓存
+
+
+
+## 10.RemeberMe
+
+主要通过cookie来将用户存储在浏览器中，一般网页的可以使用RememberMe来访问，涉及到一些特殊网页则需要Subject.login()方法
 
 
 
