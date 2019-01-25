@@ -28,3 +28,10 @@ git remote add origin https://gitee.com/chensj881008/Markdown.git
 git push -u origin master
 ```
 
+设置跟踪远程分支：
+
+```bash
+git pull origin master
+git branch --set-upstream-to=origin/master master
+```
+
