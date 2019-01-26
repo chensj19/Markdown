@@ -70,3 +70,26 @@ JSR356定义了WebSocket的规范，JSR356 的 WebSocket 规范使用 javax.webs
 ​	很多网站为了实现推送技术，所用的技术都是 Ajax 轮询。轮询是在特定的的时间间隔（如每1秒），由浏览器对服务器发出HTTP请求，然后由服务器返回最新的数据给客户端的浏览器。这种传统的模式带来很明显的缺点，即浏览器需要不断的向服务器发出请求，然而HTTP请求可能包含较长的头部，其中真正有效的数据可能只是很小的一部分，显然这样会浪费很多的带宽等资源。
 
 ​	HTML5 定义的 WebSocket 协议，能更好的节省服务器资源和带宽，并且能够更实时地进行通讯。
+
+## 3.WebSocket 特点 
+
+(1)建立在 TCP 协议之上,服务器端的实现比较容易。 
+
+(2)与 HTTP 协议有着良好的兼容性。默认端口也是80和443,并且握手阶段采用 HTTP 协议,因此握手时不容易屏蔽,能通过各种 HTTP 代理服务器。 
+
+(3)数据格式比较轻量,性能开销小,通信高效。 
+
+(4)可以发送文本,也可以发送二进制数据。 
+
+(5)没有同源限制,客户端可以与任意服务器通信。 
+
+(6)协议标识符是 ws (如果加密,则为 wss ),服务器网址就是 URL。
+
+ ```js
+ws://example.com:80/some/path
+ ```
+
+![](http://aliyunzixunbucket.oss-cn-beijing.aliyuncs.com/jpg/1fe0bfbec9213af074b8778651e6061d.jpg?x-oss-process=image/resize,p_100/auto-orient,1/quality,q_90/format,jpg/watermark,image_eXVuY2VzaGk=,t_100,g_se,x_0,y_0)
+
+## 4.Java Demo
+
