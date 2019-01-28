@@ -93,3 +93,175 @@ ws://example.com:80/some/path
 
 ## 4.Java Demo
 
+### 4.1 `pom.xml`
+
+```xml
+<dependency>
+    <groupId>javax.websocket</groupId>
+    <artifactId>javax.websocket-api</artifactId>
+    <version>1.1</version>
+    <scope>provided</scope>
+</dependency>
+
+<dependency>
+    <groupId>javax</groupId>
+    <artifactId>javaee-api</artifactId>
+    <version>7.0</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+### 4.2 `WebSocketServer.java`
+
+```java
+package com.winning.websocket.server;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+
+import com.alibaba.fastjson.JSONObject;
+
+@ServerEndpoint(value="/ws/{username}")
+public class WebSocketServer {
+
+	private static int onlineCount = 0;  
+    private static Map<String, WebSocketServer> clients = new ConcurrentHashMap<String, WebSocketServer>();  
+    private Session session;  
+    private String username;  
+      
+    @OnOpen  
+    public void onOpen(@PathParam("username") String username, Session session) throws IOException {  
+  
+        this.username = username;  
+        this.session = session;  
+          
+        addOnlineCount();  
+        clients.put(username, this);  
+        System.out.println("已连接");  
+    }  
+  
+    @OnClose  
+    public void onClose() throws IOException {  
+        clients.remove(username);  
+        subOnlineCount();  
+    }  
+  
+    @OnMessage  
+    public void onMessage(String message) throws IOException {  
+  
+        JSONObject jsonTo = JSONObject.parseObject(message);  
+          
+        if (!jsonTo.get("To").equals("All")){  
+            sendMessageTo("给一个人", jsonTo.get("To").toString());  
+        }else{  
+            sendMessageAll("给所有人");  
+        }  
+    }  
+  
+    @OnError  
+    public void onError(Session session, Throwable error) {  
+        error.printStackTrace();  
+    }  
+  
+    public void sendMessageTo(String message, String To) throws IOException {  
+        // session.getBasicRemote().sendText(message);  
+        //session.getAsyncRemote().sendText(message);  
+        for (WebSocketServer item : clients.values()) {  
+            if (item.username.equals(To) )  
+                item.session.getAsyncRemote().sendText(message);  
+        }  
+    }  
+      
+    public void sendMessageAll(String message) throws IOException {  
+        for (WebSocketServer item : clients.values()) {  
+            item.session.getAsyncRemote().sendText(message);  
+        }  
+    }  
+      
+      
+  
+    public static synchronized int getOnlineCount() {  
+        return onlineCount;  
+    }  
+  
+    public static synchronized void addOnlineCount() {  
+    	WebSocketServer.onlineCount++;  
+    }  
+  
+    public static synchronized void subOnlineCount() {  
+    	WebSocketServer.onlineCount--;  
+    }  
+  
+    public static synchronized Map<String, WebSocketServer> getClients() {  
+        return clients;  
+    }  
+}
+
+```
+
+### 4.3 `index.jsp`
+
+```jsp
+<%@page pageEncoding="utf-8" language="java" %>
+<html>
+<body>
+<h2>Hello World!</h2>
+<div id='content'>
+
+</div>
+</body>
+<script>
+	var websocket = null;
+	if ('WebSocket' in window) {  
+	    websocket = new WebSocket("ws://" + document.location.host + "/websoket-web-demo/ws/admin");  
+	} else {  
+	    alert('当前浏览器 Not support websocket')  
+	}  
+	
+	//连接发生错误的回调方法  
+	websocket.onerror = function() {  
+	    setMessageInnerHTML("WebSocket连接发生错误");  
+	};  
+	  
+	//连接成功建立的回调方法  
+	websocket.onopen = function() {  
+	    setMessageInnerHTML("WebSocket连接成功");  
+	}  
+	  
+	//接收到消息的回调方法  
+	websocket.onmessage = function(event) {  
+	    setMessageInnerHTML(event.data);  
+	}  
+	  
+	//连接关闭的回调方法  
+	websocket.onclose = function() {  
+	    setMessageInnerHTML("WebSocket连接关闭");  
+	}  
+	  
+	//监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。  
+	window.onbeforeunload = function() {  
+	    closeWebSocket();  
+	}  
+	  
+	//关闭WebSocket连接  
+	function closeWebSocket() {  
+	    websocket.close();  
+	}  
+	
+	function setMessageInnerHTML(msg){
+		console.log(msg)
+		
+	}
+</script>
+</html>
+```
+
