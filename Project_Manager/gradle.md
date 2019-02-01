@@ -91,3 +91,34 @@ maven { url "https://maven.aliyun.com/repository/spring-plugin"}
 maven { url "https://maven.aliyun.com/repository/public"}
 ```
 
+## Gradle的缓存路径修改的四种方法
+
+### 1 修改gradle.properties文件
+
+增加一句话设置目录：`gradle.user.home=D\:\\Android\\.gradle`
+
+![](https://img-blog.csdn.net/20180413185639170?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+### 2 在Android Studio/Idea中修改gradle用户目录，打开设置(快捷键Ctrl+alt+S)，定位到Gradle菜单,作如下设置
+
+![](https://img-blog.csdn.net/20180413185936826?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+
+
+### 3 修改gradle启动脚本，进入gradle安装的bin目录，使用文本编辑器打开gradle.bat文件，在如图的位置添加以下语句
+
+```bash 
+set GRADLE_OPTS="-Dgradle.user.home=D:\Android\.gradle"
+```
+
+![](https://img-blog.csdn.net/20180413190305121?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+### 4 下面推荐[Windows](https://www.baidu.com/s?wd=Windows&tn=24004469_oem_dg&rsv_dl=gh_pl_sl_csd)环境变量设置gradle用户目录，
+
+通过环境变量的方式，gradle会读取环境变量，所有的项目都会自动修改过来，非常方便。打开环境变量设置方法如图(win10下用快捷键win+Q呼出小娜,其他版本可以进控制面板查找到系统->高级系统设置)
+
+![img](https://img-blog.csdn.net/20180413190548127?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+![img](https://img-blog.csdn.net/20180413190618936?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+![img](https://img-blog.csdn.net/20180413190745785?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
