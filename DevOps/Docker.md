@@ -1,3 +1,5 @@
+
+
 # Docker
 
 ## 虚拟化与Docker 对比
@@ -338,12 +340,14 @@ docker image ls -f label=com.example.version=0.1
   dockerinaction/hello_world   latest              a1a9a5ed65e9        3 years ago         2.43MB
   ```
 
-  
-
   * 镜像短ID
 
   ```bash
-  docker image rm f09
+  $ docker image rm f09
+  $ docker rmi 10d
+  Untagged: nginx:v2
+  Deleted: sha256:10db61ad8d1c838bce07314952a00fce0512d05bd215fc50b93d58146c3904fe
+  Deleted: sha256:e9f43fdd03385cfc0bf14a04ce7838778c3773d9c033cc74170c4b74586668fd
   ```
 
   * 镜像长ID
@@ -390,6 +394,316 @@ docker image ls -f label=com.example.version=0.1
   $ docker image rm $(docker image ls -q -f before=mongo:3.2)
   ```
   充分利用你的想象力和 Linux 命令行的强大，你可以完成很多非常赞的功能
+
+### 9、镜像组成(使用`commit`理解)
+
+> docker commit 命令处理学习以外，还有一些特殊使用的场合，比如被入侵后保存现场等，但是不能使用docker commit 定制镜像，定制镜像还是需要使用Dockerfile来完成
+
+​	镜像是容器的基础，每次执行 docker run 的时候都会指定哪个镜像作为容器运行的基础。在之前的例子中，我们所使用的都是来自于 Docker Hub 的镜像。直接使用这些镜像是可以满足一定的需求，而当这些镜像无法直接满足需求时，我们就需要定制这些镜像。接下来的几节就将讲解如何定制镜像。
+​	回顾一下之前我们学到的知识，镜像是多层存储，每一层是在前一层的基础上进行的修改；而容器同样也是多层存储，是在以镜像为基础层，在其基础上加一层作为容器运行时的存储层
+
+* 定制一个Web服务器
+
+```bash
+docker run --name webServer -d -p 80:80 nginx
+```
+
+​	用 nginx 镜像启动一个容器，命名为 webserver ，并且映射了 80端口，这样我们可以用浏览器去访问这个 nginx 服务器,可以使用http://localhost访问，可以看到Nginx的欢迎页面
+
+* 进入容器修改
+
+```bash  
+docker exec -it webServer bash
+root@f1fb4b6cae37:/usr/share/nginx/html# echo '<h1>Hello Docker!</h1>' > index.html
+root@f1fb4b6cae37:/usr/share/nginx/html# more index.html
+<h1>Hello Docker!</h1>
+```
+
+页面内容变为Hello Docker
+
+* 查看容器文件变动
+
+  ```bash
+  docker diff webServer
+  ```
+
+  ```bash
+   docker diff webServer
+  C /var
+  C /var/cache
+  C /var/cache/nginx
+  A /var/cache/nginx/scgi_temp
+  A /var/cache/nginx/uwsgi_temp
+  A /var/cache/nginx/client_temp
+  A /var/cache/nginx/fastcgi_temp
+  A /var/cache/nginx/proxy_temp
+  C /run
+  A /run/nginx.pid
+  C /usr
+  C /usr/share
+  C /usr/share/nginx
+  C /usr/share/nginx/html
+  C /usr/share/nginx/html/index.html
+  C /root
+  A /root/.bash_history
+  ```
+
+  现在我们定制好了变化，我们希望能将其保存下来形成镜像。
+  要知道，当我们运行一个容器的时候（如果不使用卷的话），我们做的任何文件修改都会被记录于容器存储层里。而 Docker 提供了一个 docker commit 命令，可以将容器的存储层保存下来成为镜像。换句话说，就是在原有镜像的基础上，再叠加上容器的存储层，并构成新的镜像。以后我们运行这个新镜像的时候，就会拥有
+  原有容器最后的文件变化。
+
+  docker commit 的语法格式为：
+
+  ```bash
+  docker commit [选项] <容器ID或容器名> [<仓库名>[:<标签>
+  ```
+
+* 保存上面的镜像
+
+  ```bash
+  $ docker commit --author "chenshijie1988@yeah.net" --message "修改默认的网页" webServer nginx:v2
+  
+  sha256:10db61ad8d1c838bce07314952a00fce0512d05bd215fc50b93d58146c3904fe
+  ```
+* 在 `docker image ls` 中看到这个新定制的镜像
+  ```bash
+  $ docker image ls
+  REPOSITORY                   TAG                 IMAGE ID            CREATED              SIZE
+  nginx                        v2                  10db61ad8d1c        About a minute ago   109MB
+  nginx                        latest              f09fe80eb0e7        12 days ago          109MB
+  ubuntu                       18.04               47b19964fb50        12 days ago          88.1MB
+  centos                       7.0.1406            59b15a9def8d        4 months ago         210MB
+  dockerinaction/hello_world   latest              a1a9a5ed65e9        3 years ago          2.43MB
+  ```
+
+* `docker history` 具体查看镜像内的历史记录，如果比较nginx:latest 的历史记录，我们会发现新增了我们刚刚提交的这一层
+
+```bash
+$ docker history nginx:v2
+IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
+10db61ad8d1c        3 minutes ago       nginx -g daemon off;                            171B                修改默认的网页
+f09fe80eb0e7        12 days ago         /bin/sh -c #(nop)  CMD ["nginx" "-g" "daemon…   0B
+<missing>           12 days ago         /bin/sh -c #(nop)  STOPSIGNAL SIGTERM           0B
+<missing>           12 days ago         /bin/sh -c #(nop)  EXPOSE 80                    0B
+<missing>           12 days ago         /bin/sh -c ln -sf /dev/stdout /var/log/nginx…   22B
+<missing>           12 days ago         /bin/sh -c set -x  && apt-get update  && apt…   53.9MB
+<missing>           12 days ago         /bin/sh -c #(nop)  ENV NJS_VERSION=1.15.8.0.…   0B
+<missing>           12 days ago         /bin/sh -c #(nop)  ENV NGINX_VERSION=1.15.8-…   0B
+<missing>           12 days ago         /bin/sh -c #(nop)  LABEL maintainer=NGINX Do…   0B
+<missing>           12 days ago         /bin/sh -c #(nop)  CMD ["bash"]                 0B
+<missing>           12 days ago         /bin/sh -c #(nop) ADD file:5a6d066ba71fb0a47…   55.3MB
+```
+
+* 运行定制的镜像
+
+```bash
+$ docker run --name web -d -p 81:80 nginx:v2
+```
+
+命名为新的服务为 web2 ，并且映射到 81 端口。如果是 Docker for Mac/Windows 或 Linux 桌面的话，我们就可以直接访问 http://localhost:81 看到结果，其内容应该和之前修改后的 webserver 一样
+
+> 慎用 docker commit
+>
+> 使用 docker commit 命令虽然可以比较直观的帮助理解镜像分层存储的概念，但是实际环境中并不会这样使用。首先，如果仔细观察之前的 docker diff webserver 的结果，你会发现除了真正想要修改的 /usr/share/nginx/html/index.html 文件外，由于命令的执行，还有很多文件被改动或添加了。这还仅仅是最简单的操作，如果是安装软件包、编译构建，那会有大量的无关内容被添加进来，如果不小心清理，将会导致镜像极为臃肿。
+>
+> 此外，使用 docker commit 意味着所有对镜像的操作都是黑箱操作，生成的镜像也被称为黑箱镜像，换句话说，就是除了制作镜像的人知道执行过什么命令、怎么生成的镜像，别人根本无从得知。而且，即使是这个制作镜像的人，过一段时间后也无法记清具体在操作的。虽然 docker diff 或许可以告诉得到一些线索，
+> 但是远远不到可以确保生成一致镜像的地步。这种黑箱镜像的维护工作是非常痛苦的。
+>
+> 而且，回顾之前提及的镜像所使用的分层存储的概念，除当前层外，之前的每一层都是不会发生改变的，换句话说，任何修改的结果仅仅是在当前层进行标记、添加、修改，而不会改动上一层。如果使用 docker commit 制作镜像，以及后期修改的话，每一次修改都会让镜像更加臃肿一次，所删除的上一层的东西并不会丢失，会一直如影随形的跟着这个镜像，即使根本无法访问到。这会让镜像更加臃肿。
+
+
+
+### 10、Dockerfile定制镜像
+
+镜像定制：实际上就是定制镜像每一层所添加的配置、文件。
+
+如果我们可以把每一层修改、安装、构建、操作的命令都写入一个脚本，用这个脚本来构建、定制镜像，那么之前提及的无法重复的问题、镜像构建透明性的问题、体积的问题就都会解决。这个脚本就是`Dockerfile`。
+
+#### Dockerfile 
+
+Dockerfile 是一个文本文件，其内包含了一条条的指令(Instruction)，每一条指令构建一层，因此每一条指令的内容，就是描述该层应当如何构建。
+
+#### 使用Dockerfile定制`commit`的镜像
+
+* 在一个空白目录中，建立一个文本文件，并命名为 Dockerfile ：
+
+```bash
+$ mkdir nginx
+$ cd nginx
+$ touch Dockerfile
+```
+
+内容为：
+
+```dockerfile
+FROM nginx
+RUN echo '<h1>Hello Docker!</h1>' > /usr/share/nginx/html/index.html
+```
+
+* FROM 指定基础镜像
+
+  所谓定制镜像，那一定是以一个镜像为基础，在其上进行定制，就像我们之前运行了一个 nginx 镜像的容器，再进行修改一样，基础镜像是必须指定的。而FROM 就是指定基础镜像，因此一个 Dockerfile 中 FROM 是必备的指令，并
+  且必须是第一条指令。
+
+  在 Docker Hub 上有非常多的高质量的官方镜像，有可以直接拿来使用的服务类的镜像，如 nginx 、 redis 、 mongo 、 mysql 、 httpd 、 php 、 tomcat等；也有一些方便开发、构建、运行各种语言应用的镜像，如node 、 openjdk 、 python 、 ruby 、 golang 等。可以在其中寻找一个最符合我们最终目标的镜像为基础镜像进行定制。
+  如果没有找到对应服务的镜像，官方镜像中还提供了一些更为基础的操作系统镜像，如 ubuntu 、 debian 、 centos 、 fedora 、 alpine 等，这些操作系统的软件库为我们提供了更广阔的扩展空间。
+  除了选择现有镜像为基础镜像外，Docker 还存在一个特殊的镜像，名为scratch 。这个镜像是虚拟的概念，并不实际存在，它表示一个空白的镜像。
+
+  如果你以 scratch 为基础镜像的话，意味着你不以任何镜像为基础，接下来所写的指令将作为镜像第一层开始存在。
+
+* RUN 执行命令
+
+  RUN 指令是用来执行命令行命令的。由于命令行的强大能力RUN 指令在定制镜像时是最常用的指令之一。其格式有两种：
+
+  * shell 格式： RUN <命令> ，就像直接在命令行中输入的命令一样。刚才写的Dockerfile 中的 RUN 指令就是这种格式。
+
+  ```bash 
+    RUN echo '<h1>Hello, Docker!</h1>' > /usr/share/nginx/html/index.html
+  ```
+
+  * exec 格式： RUN ["可执行文件", "参数1", "参数2"] ，这更像是函数调用中的格式。
+
+* 样例
+
+```dockerfile
+FROM debian:stretch
+RUN apt-get update
+RUN apt-get install -y gcc libc6-dev make wget
+RUN wget -O redis.tar.gz "http://download.redis.io/releases/redis-5.0.3.tar.gz"
+RUN mkdir -p /usr/src/redis
+RUN tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1
+RUN make -C /usr/src/redis
+RUN make -C /usr/src/redis install
+```
+
+之前说过，Dockerfile 中每一个指令都会建立一层， RUN 也不例外。每一个RUN 的行为，就和刚才我们手工建立镜像的过程一样：新建立一层，在其上执行这些命令，执行结束后， commit 这一层的修改，构成新的镜像。
+而上面的这种写法，创建了 7 层镜像。这是完全没有意义的，而且很多运行时不需要的东西，都被装进了镜像里，比如编译环境、更新的软件包等等。结果就是产生非常臃肿、非常多层的镜像，不仅仅增加了构建部署的时间，也很容易出错。 这是很多初学 Docker 的人常犯的一个错误
+
+Union FS 是有最大层数限制的，比如 AUFS，曾经是最大不得超过 42 层，现在是不得超过 127 层。
+上面的 Dockerfile 正确的写法应该是这样：
+
+```dockerfile
+FROM debian:stretch
+RUN buildDeps='gcc libc6-dev make wget' \
+&& apt-get update \
+&& apt-get install -y $buildDeps \
+&& wget -O redis.tar.gz "http://download.redis.io/releases/redis-5.0.3.tar.gz" \
+&& mkdir -p /usr/src/redis \
+&& tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \
+&& make -C /usr/src/redis \
+&& make -C /usr/src/redis install \
+&& rm -rf /var/lib/apt/lists/* \
+&& rm redis.tar.gz \
+&& rm -r /usr/src/redis \
+&& apt-get purge -y --auto-remove $buildDeps
+```
+
+​	首先，之前所有的命令只有一个目的，就是编译、安装 redis 可执行文件。因此没有必要建立很多层，这只是一层的事情。因此，这里没有使用很多个 RUN 对一一对应不同的命令，而是仅仅使用一个 RUN 指令，并使用 && 将各个所需命令串联起来。将之前的 7 层，简化为了 1 层。在撰写 Dockerfile 的时候，要经常提醒自己，这并不是在写 Shell 脚本，而是在定义每一层该如何构建。
+
+​	并且，这里为了格式化还进行了换行。Dockerfile 支持 Shell 类的行尾添加 \ 的命令换行方式，以及行首 # 进行注释的格式。良好的格式，比如换行、缩进、注释等，会让维护、排障更为容易，这是一个比较好的习惯。
+
+​	此外，还可以看到这一组命令的最后添加了清理工作的命令，删除了为了编译构建所需要的软件，清理了所有下载、展开的文件，并且还清理了 apt 缓存文件。这是很重要的一步，我们之前说过，镜像是多层存储，每一层的东西并不会在下一层被删除，会一直跟随着镜像。因此镜像构建时，一定要确保每一层只添加真正需要添加的东西，任何无关的东西都应该清理掉。
+
+​	很多人初学 Docker 制作出了很臃肿的镜像的原因之一，就是忘记了每一层构建的最后一定要清理掉无关文件
+
+#### 构建镜像
+
+```bash
+$ docker build -t nginx:v3 .
+Sending build context to Docker daemon  2.048kB
+Step 1/2 : FROM nginx
+ ---> f09fe80eb0e7
+Step 2/2 : RUN echo '<h1>Hello Docker!</h1>' > /usr/share/nginx/html/index.html
+ ---> Running in 883ebb41a656
+Removing intermediate container 883ebb41a656
+ ---> 9d07eff28834
+Successfully built 9d07eff28834
+Successfully tagged nginx:v3
+SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host. All files and directories added to build context will have '-rwxr-xr-x' permissions. It is recommended to double check and reset permissions for sensitive files and directories.
+```
+
+```bash
+docker build [选项] <上下文路径/URL/->
+```
+
+##### 镜像构建上下文路径
+
+如果注意上面的执行的命令，你会看到 docker build 命令最后有一个`.`, 表示当前目录，而Dockerfile 就在当前目录，因此不少初学者以为这个路径是在指定Dockerfile 所在路径，这么理解其实是不准确的。如果对应上面的命令格式，你可能会发现，这是在指定上下文路径.
+
+* 上下文路径
+* 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
