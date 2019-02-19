@@ -1,5 +1,7 @@
 
 
+[TOC]
+
 # Docker
 
 ## 一、虚拟化与Docker 对比
@@ -520,11 +522,11 @@ $ docker run --name web -d -p 81:80 nginx:v2
 
 如果我们可以把每一层修改、安装、构建、操作的命令都写入一个脚本，用这个脚本来构建、定制镜像，那么之前提及的无法重复的问题、镜像构建透明性的问题、体积的问题就都会解决。这个脚本就是`Dockerfile`。
 
-#### Dockerfile 
+#### 6.10.1 Dockerfile 
 
 Dockerfile 是一个文本文件，其内包含了一条条的指令(Instruction)，每一条指令构建一层，因此每一条指令的内容，就是描述该层应当如何构建。
 
-#### 使用Dockerfile定制`commit`的镜像
+#### 6.10.2 使用Dockerfile定制`commit`的镜像
 
 * 在一个空白目录中，建立一个文本文件，并命名为 Dockerfile ：
 
@@ -607,7 +609,7 @@ RUN buildDeps='gcc libc6-dev make wget' \
 
 ​	很多人初学 Docker 制作出了很臃肿的镜像的原因之一，就是忘记了每一层构建的最后一定要清理掉无关文件
 
-#### 构建镜像
+#### 6.10.3 构建镜像
 
 ```bash
 $ docker build -t nginx:v3 .
@@ -627,7 +629,7 @@ SECURITY WARNING: You are building a Docker image from Windows against a non-Win
 docker build [选项] <上下文路径/URL/->
 ```
 
-##### 镜像构建上下文路径
+##### 6.10.3.1 镜像构建上下文路径
 
 ​	如果注意上面的执行的命令，你会看到 docker build 命令最后有一个`.`, 表示当前目录，而Dockerfile 就在当前目录，因此不少初学者以为这个路径是在指定Dockerfile 所在路径，这么理解其实是不准确的。如果对应上面的命令格式，你可能会发现，这是在指定上下文路径.
 
@@ -874,14 +876,14 @@ $ docker container prune
 
 目前 Docker 官方维护了一个公共仓库 Docker Hub，其中已经包括了数量超过15,000 的镜像。大部分需求都可以通过在 Docker Hub 中直接下载镜像来实现。
 
-* 注册
+#### 8.1.1  注册
   你可以在 https://hub.docker.com 免费注册一个 Docker 账号。
 
-* 登录
+#### 8.1.2  登录
   可以通过执行 docker login 命令交互式的输入用户名及密码来完成在命令行界面登录 Docker Hub。
   你可以通过 docker logout 退出登录。
 
-* 拉取镜像
+#### 8.1.3  拉取镜像
   你可以通过 docker search 命令来查找官方仓库中的镜像，并利用 docker pull 命令来将它下载到本地。
   例如以 centos 为关键词进行搜索：
 
@@ -932,7 +934,7 @@ $ docker container prune
   7064731afe90: Download complete
   ```
 
-* 推送镜像
+#### 8.1.4  推送镜像
   用户也可以在登录后通过 docker push 命令来将自己的镜像推送到 Docker Hub。
   以下命令中的 username 请替换为你的 Docker 账号用户名。
 
@@ -942,7 +944,7 @@ $ docker push username/ubuntu:18.04
 $ docker search username
 ```
 
-* 自动创建
+#### 8.1.5 自动创建
 
 自动创建（Automated Builds）功能对于需要经常升级镜像内程序来说便。
 
@@ -964,17 +966,342 @@ $ docker search username
 
   之后，可以在 Docker Hub 的 自动创建页面 中跟踪每次创建的状态。
 
+### 8.2 私有仓库
+
+​	Docker Hub是一个公共仓库，在公司开发使用存在一定的不方便，因此可以创建一个本地仓库提供给私人使用。`docker-registry`是官方提供的工具，可以用于构建私有的镜像仓库。
+
+#### 8.2.1 安装docker-registry
+
+##### 8.2.1.1 容器运行
+
+```bash
+$ docker run -d -p 5000:5000 --restart=always --name registry registry
+```
+
+通过官方的`registry`镜像来启动私有仓库。默认情况下，仓库会被创建在容器的`/var/lib/registry `目录下。你可以通过 `-v` 参数来将镜像文件存放在本地的指定路径
+
+指定本地上传的镜像文件存放目录为`/opt/data/registry`目录
+
+```bash
+$ docker run -d -p 5000:5000 -v /opt/data/registry:/var/lib/registry 	--restart=always --name registry registry
+```
+
+##### 8.2.1.2 在私有仓库上传、搜索、下载镜像
+
+```bash
+# 镜像列表
+$ docker image ls
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+test/ubuntu         v1.0                1f7ac1450a42        15 hours ago        69.8MB
+nginx               latest              f09fe80eb0e7        12 days ago         109MB
+ubuntu              18.04               47b19964fb50        13 days ago         88.1MB
+ubuntu              latest              47b19964fb50        13 days ago         88.1MB
+registry            latest              d0eed8dad114        2 weeks ago         25.8MB
+centos              7.0.1406            59b15a9def8d        4 months ago        210MB
+# 标记镜像
+# docker tag image[:tag] [registry_host[:port]/]repository[:tag]
+$ docker tag test/ubuntu:v1.0 127.0.0.1:5000/ubuntu:v1
+# 查看镜像
+$ docker image ls --format "table {{.Repository}}\t{{.ID}}\t{{.Tag}}\t{{.Size}}"
+REPOSITORY              IMAGE ID            TAG                 SIZE
+127.0.0.1:5000/ubuntu   1f7ac1450a42        v1                  69.8MB
+test/ubuntu             1f7ac1450a42        v1.0                69.8MB
+nginx                   f09fe80eb0e7        latest              109MB
+ubuntu                  47b19964fb50        18.04               88.1MB
+ubuntu                  47b19964fb50        latest              88.1MB
+registry                d0eed8dad114        latest              25.8MB
+centos                  59b15a9def8d        7.0.1406            210MB
+# 上传标记镜像
+$ docker push 127.0.0.1:5000/ubuntu:v1
+The push refers to repository [127.0.0.1:5000/ubuntu]
+ab9acfbead15: Pushed
+v1: digest: sha256:f66fbc816c657299faed9a036457346cd9390882a7e514b0fcb3ec608c5e0748 size: 528
+# 查看仓库中的镜像
+$ curl 127.0.0.1:5000/v2/_catalog
+{"repositories":["ubuntu"]}
+# 删除本地镜像
+$ docker image rm 127.0.0.1:5000/ubuntu:v1
+Untagged: 127.0.0.1:5000/ubuntu:v1
+Untagged: 127.0.0.1:5000/ubuntu@sha256:f66fbc816c657299faed9a036457346cd9390882a7e514b0fcb3ec608c5e0748
+# 下载镜像
+$ docker pull 127.0.0.1:5000/ubuntu:v1
+v1: Pulling from ubuntu
+Digest: sha256:f66fbc816c657299faed9a036457346cd9390882a7e514b0fcb3ec608c5e0748
+Status: Downloaded newer image for 127.0.0.1:5000/ubuntu:v1
+
+```
+
+#####  8.2.1.3 注意事项
+
+> ​	如果你不想使用 127.0.0.1:5000 作为仓库地址，比如想让本网段的其他主机也能把镜像推送到私有仓库。你就得把例如 192.168.199.100:5000 这样的内网地址作为私有仓库地址，这时你会发现无法成功推送镜像。
+> ​	这是因为 Docker 默认不允许非 HTTPS 方式推送镜像。我们可以通过 Docker 的配置选项来取消这个限制，或者查看下一节配置能够通过 HTTPS 访问的私有仓库。
+
+#####   
+
+##### 8.2.1.4 通过 HTTPS 访问的私有仓库
+
+* Ubuntu 14.04, Debian 7 Wheezy
+
+  对于使用 `upstart` 的系统而言，编辑 `/etc/default/docker` 文件，在其中的`DOCKER_OPTS` 中增加如下内容：
+
+  ```bash
+  DOCKER_OPTS="--registry-mirror=https://registry.docker-cn.com --insecure-registries=192.168.199.100:5000"
+  ```
+
+  重新启动服务：
+
+  ```bash
+  $ sudo service docker restart
+  ```
+
+* Ubuntu 16.04+, Debian 8+, centos 7
+
+  对于使用 `systemd` 的系统，请在 `/etc/docker/daemon.json` 中写入如下内容（如果文件不存在请新建该文件）
+
+  ```json
+  {
+      "registry-mirror": [
+      	"https://registry.docker-cn.com"
+      ],
+      "insecure-registries": [
+      	"192.168.199.100:5000"
+      ]
+  }
+  ```
+
+* Windows、Mac
+
+  对于 Docker for Windows 、 Docker for Mac 在设置中编辑 daemon.json 增加和上边一样的字符串即可
+
+#### 8.2.2 私有仓库高级设置
+
+使用`Docker Compose`搭建一个拥有权限认证、TLS 的私有仓库
+
+##### 8.2.2.1  准备站点证书
+
+如果你拥有一个域名，国内各大云服务商均提供免费的站点证书。你也可以使用`openssl` 自行签发证书。
+
+这里假设我们将要搭建的私有仓库地址为 `docker.domain.com` ，下面我们介绍使用 `openssl` 自行签发` docker.domain.com` 的站点 SSL 证书。
+
+1. 创建 CA 私钥。
+```bash
+   $ openssl genrsa -out "root-ca.key" 4096
+```
+
+2. 第二步利用私钥创建 CA 根证书请求文件。
+```bash
+   $ openssl req \
+   -new -key "root-ca.key" \
+   -out "root-ca.csr" -sha256 \
+   -subj '/C=CN/ST=Shanxi/L=Datong/O=Your Company Name/CN =Your Company Name Docker Registry CA'
+```
+   以上命令中 -subj 参数里的 /C 表示国家，如 CN ； /ST 表示省； /L   表示城市或者地区； /O 表示组织名； /CN 通用名称。
+
+3. 配置 CA 根证书，新建 root-ca.cnf 。
+```bash
+   [root_ca]
+   basicConstraints = critical,CA:TRUE,pathlen:1
+   keyUsage = critical, nonRepudiation, cRLSign, keyCertSign
+   subjectKeyIdentifier=hash
+```
+
+4. 签发根证书。
+```bash
+   $ openssl x509 -req -days 3650 -in "root-ca.csr"  \
+   -signkey "root-ca.key" -sha256 -out "root-ca.crt" \
+   -extfile "root-ca.cnf" -extensions \
+   root_ca
+```
+
+5. 生成站点 SSL 私钥。
+```bash
+   $ openssl genrsa -out "docker.domain.com.key" 4096
+```
+
+6. 使用私钥生成证书请求文件。
+```bash
+   $ openssl req -new -key "docker.domain.com.key" -out "site.csr" -sha256 \
+   -subj '/C=CN/ST=Shanxi/L=Datong/O=Your Company Name/CN =docker.domain.com'
+```
+
+7. 配置证书，新建 site.cnf 文件。
+```bash
+   [server]
+   authorityKeyIdentifier=keyid,issuer
+   basicConstraints = critical,CA:FALSE
+   extendedKeyUsage=serverAuth
+   keyUsage = critical, digitalSignature, keyEncipherment
+   subjectAltName = DNS:docker.domain.com, IP:127.0.0.1
+   subjectKeyIdentifier=hash
+```
+
+8. 签署站点 SSL 证书。
+```bash
+   $ openssl x509 -req -days 750 -in "site.csr" -sha256 \
+   -CA "root-ca.crt" -CAkey "root-ca.key" -CAcreateserial \
+   -out "docker.domain.com.crt" -extfile "site.cnf" -extensions server
+```
+   这样已经拥有了 `docker.domain.com` 的网站 SSL 私钥   `docker.domain.com.key `和 SSL 证书
+
+` docker.domain.com.crt `及 CA 根证书 `root-ca.crt` 。
+
+   新建 ssl 文件夹并将 `docker.domain.com.key`,`docker.domain.com.crt`,   `root-ca.crt` 这三个文件移入，
+
+删除其他文件。
+
+##### 8.2.2.2 配置私有仓库
+
+私有仓库默认的配置文件位于 `/etc/docker/registry/config.yml`，我们先在本地编辑`config.yml`，之后挂
+
+载到容器中
+
+```yml
+version: 0.1
+log:
+	accesslog:
+		disabled: true
+	level: debug
+	formatter: text
+	fields:
+		service: registry
+		environment: staging
+storage:
+	delete:
+		enabled: true
+	cache:
+		blobdescriptor: inmemory
+	filesystem:
+		rootdirectory: /var/lib/registry
+auth:
+	htpasswd:
+		realm: basic-realm
+		path: /etc/docker/registry/auth/nginx.htpasswd
+http:
+	addr: :443
+	host: https://docker.domain.com
+	headers:
+		X-Content-Type-Options: [nosniff]
+	http2:
+		disabled: false
+	tls:
+		certificate: /etc/docker/registry/ssl/docker.domain.com.crt
+		key: /etc/docker/registry/ssl/docker.domain.com.key
+health:
+	storagedriver:
+		enabled: true
+		interval: 10s
+threshold: 3
+```
+
+##### 8.2.2.3 生成 http 认证文件
+
+```bash
+$ mkdir auth
+$ docker run --rm \
+	--entrypoint htpasswd \
+	registry \
+	-Bbn username password > auth/nginx.htpasswd
+```
+
+> 将上面的 username password 替换为你自己的用户名和密码。
+
+##### 8.2.2.4 编辑 docker-compose.yml
+
+```yml
+version: '3'
+services:
+	registry:
+		image: registry
+		ports:
+			- "443:443"
+		volumes:
+			- ./:/etc/docker/registry
+			- registry-data:/var/lib/registry
+volumes:
+	registry-data:
+```
+
+##### 8.2.2.5 修改hosts
+
+编辑` /etc/hosts`
+
+```bash
+127.0.0.1 docker.domain.com
+```
+
+##### 8.2.2.6 启动
+
+```bash
+$ docker-compose up -d
+```
+
+这样我们就搭建好了一个具有权限认证、TLS 的私有仓库，接下来我们测试其功能是否正常。
+
+##### 8.2.2.7 测试私有仓库功能
+
+由于自行签发的 CA 根证书不被系统信任，所以我们需要将 CA 根证书 `ssl/root-ca.crt` 移入 
+
+`/etc/docker/certs.d/docker.domain.com` 文件夹中。
+
+```bash
+$ sudo mkdir -p /etc/docker/certs.d/docker.domain.com
+$ sudo cp ssl/root-ca.crt /etc/docker/certs.d/docker.domain.com/
+ca.crt
+```
+
+1. 登录到私有仓库。
+```bash
+   $ docker login docker.domain.com
+```
+
+2. 尝试推送、拉取镜像。
+```bash
+   $ docker pull ubuntu:18.04
+   $ docker tag ubuntu:18.04 docker.domain.com/username/ubuntu:18.04
+   $ docker push docker.domain.com/username/ubuntu:18.04
+   $ docker image rm docker.domain.com/username/ubuntu:18.04
+   $ docker pull docker.domain.com/username/ubuntu:18.04
+```
+
+3. 如果我们退出登录，尝试推送镜像。
+```bash
+   $ docker logout docker.domain.com
+   $ docker push docker.domain.com/username/ubuntu:18.04
+   no basic auth credentia
+```
+发现会提示没有登录，不能将镜像推送到私有仓库中。
+
+> 注意事项
+> 如果你本机占用了 443 端口，你可以配置 Nginx 代理，这里不再赘述。
+
+### 8.3 Nexus 私有仓库
+
+​	使用Docker官方的Registry创建的仓库面临一些维护问题。比如某些镜像删除以后空间默认是不会回收的，
+
+需要一些命令去回收空间然后重启Registry程序。在企业中把内部的一些工具包放入Nexus中是比较常见的做法，
+
+最新版本 `Nexus3.x`全面支持`Docker`的私有镜像。所以使用`Nexus3.x`一个软件来管理 `Docker` ,`Maven` , `Yum` , 
+
+`PyPI` 等是一个明智的选择。
+
+#### 8.3.1 启动Nexus容器
+
+```bash
+$ docker run -d --name nexus3 --restart=always -p 8081:8081 --mount src=nexus-data,target=/nexus-data sonatype/nexus
+```
+
+等待3-5分钟,如果 `nexus3` 容器没有异常退出,那么你可以使用浏览器打开`http://YourIP:8081` 访问`Nexus`了。
+
+第一次启动`Nexus`的默认帐号是 `admin` 密码是 `admin123` 登录以后点击页面上方的齿轮按钮进行设置
 
 
 
+## 九、Docker 数据管理
 
+在容器中管理数据主要有两种方式：
 
-
-
-
-
-
-
+* 数据卷（Volumes）
+* 挂载主机目录 (Bind mounts)
 
 
 
