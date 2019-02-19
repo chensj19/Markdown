@@ -78,7 +78,7 @@ SOA架构特点：
 
 2. 微服务架构模式
    1. 微服务架构是从SOA机构演变过来的，比SOA架构上粒度更加精细。让专业的人做专业的事情(更加专注)，目的是为了提供效率。
-   2. 每个服务与服务之间是互不影响，每个服务必须独立部署（独立数据库、独立Redis等），微服务架构更加体现轻量级，采用RESTFUL风格提供API，就是采用http协议+json格式进行传输，更加轻巧，更加适合于互联网公司敏捷开发、快速迭代产品
+   2. 每个服务与服务之间是互不影响，每个服务必须独立部署（独立数据库、独立Redis等），微服务架构更加体现轻量级，采用RESTFUL风格提供API，就是采用http协议+json格式进行传输，更加轻巧，更加适合于互联网公司*敏捷开发*、*快速迭代产品*
 
 > 在项目架构中如何保证项目能够支持多来源(移动端、PC端、微信端、小程序端、H5端)访问？
 >
@@ -95,3 +95,114 @@ SOA架构特点：
 > ​				 
 >
 > SOA服务层：会员服务、商品服务、支付服务、交易服务、微信服务、优惠券服务
+
+微服务架构是从SOA架构演变过来的，服务化功能本身在SOA这层已经实现并细化，而在微服务架构中又一次进行细分服务，服务与服务之间可以相互实现通讯
+
+> 比如会员服务：在微服务进行细分：
+>
+> *SOA*：会员服务 
+>
+> *微服务机构*  ：会员基本服务+会员联合SSO(单点登录)服务+会员积分服务
+
+## 二、Spring Cloud
+
+1. Spring Cloud 与Spring Boot 区别
+
+   1. Spring Cloud 是基于Spring Boot基础之上的一套非常完整微服务解决方案--基于RPC远程调用，不像其他rpc远程调用框架，只解决某个微服务中的问题，其内容包含服务治理、注册中心、配置管理、断路器、智能路由、微代理、控制总线、全局锁、分布式会话等。
+   2. Spring Boot 简化Spring xml配置，快速整合框架
+
+2. 可以把Spring Cloud理解为一条龙微服务解决方案，微服务全家桶，目前功能比较完善
+
+3. Spring Cloud包含多个子项目
+
+   1. Spring Cloud Config 分布式配置中心
+
+   2. Spring Cloud Netflix 核心组件
+
+      1. Eureka：服务治理 注册中心
+      2. Hystrix：服务保护框架
+      3. Ribbon： 客户端负载均衡器
+      4. Feign： 基于Ribbon和Hystrix的声明式调用组件
+      5. Zuul： 网关组件，提供智能路由、访问过滤等功能
+
+   3. Spring Cloud组件架构
+
+      ![img](http://img.ccblog.cn/img/20170118/181.jpg)
+
+   4.  组件简介
+
+     *  Spring Cloud Config：配置管理开发工具包，可以让你把配置放到远程服务器，目前支持本地存储、Git以及Subversion。
+     *  Spring Cloud Bus：事件、消息总线，用于在集群（例如，配置变化事件）中传播状态变化，可与Spring Cloud Config联合实现热部署。
+     *  Spring Cloud Netflix：针对多种Netflix组件提供的开发工具包，其中包括Eureka、Hystrix、Zuul、Archaius等。
+          *  Netflix Eureka：云端负载均衡，一个基于 REST 的服务，用于定位服务，以实现云端的负载均衡和中间层服务器的故障转移。
+          *  Netflix Hystrix：容错管理工具，旨在通过控制服务和第三方库的节点,从而对延迟和故障提供更强大的容错能力。
+          *  Netflix Zuul：边缘服务工具，是提供动态路由，监控，弹性，安全等的边缘服务。
+          *  Netflix Archaius：配置管理API，包含一系列配置管理API，提供动态类型化属性、线程安全配置操作、轮询框架、回调机制等功能。
+     *  Spring Cloud for Cloud Foundry：通过Oauth2协议绑定服务到CloudFoundry，CloudFoundry是VMware推出的开源PaaS云平台。
+     *  Spring Cloud Sleuth：日志收集工具包，封装了Dapper,Zipkin和HTrace操作。
+     *  Spring Cloud Data Flow：大数据操作工具，通过命令行方式操作数据流。
+     *  Spring Cloud Security：安全工具包，为你的应用程序添加安全控制，主要是指OAuth2。
+     *  Spring Cloud Consul：封装了Consul操作，consul是一个服务发现与配置工具，与Docker容器可以无缝集成。
+     *  Spring Cloud Zookeeper：操作Zookeeper的工具包，用于使用zookeeper方式的服务注册和发现。
+     *  Spring Cloud Stream：数据流操作开发包，封装了与Redis,Rabbit、Kafka等发送接收消息。
+     *  Spring Cloud CLI：基于 Spring Boot CLI，可以让你以命令行方式快速建立云组件。
+
+## 三、Eureka 注册中心
+
+### 3.1 服务注册与发现
+
+* RPC远程调用框架，核心设计思想在于注册中心，因为使用注册中心管理每个服务与服务之间的依赖管理(*服务治理*)，可以本地负载均衡、实现服务注册与发现、容错等
+
+* 服务治理
+  * 在传统的RPC框架中，管理每个服务与服务之间依赖关系比较复杂
+
+### 3.2 原理
+
+在任何rpc框架中，都会有一个*注册中心*，注册中心主要作用就是存放服务的相关信息
+
+> spring cloud 中支持以下三种注册中心：
+>
+> Eureka、Consul、Zookeeper
+>
+> Dubbo支持两种 Redis和Zookeeper
+
+举例：订单服务、注册中心、会员服务
+
+> 流程
+>
+> 1、首先启动注册中心（Eureka注册中心）  *注册中心*
+>
+> 2、启动会员服务：会将服务基本信息比如服务地址、接口等信息，以别名方式注册到注册中心
+>
+> ​	比如：会员服务为127.0.0.1:8080 那么注册中心存放的就是：
+>
+> ​	ServerId(key):app_member
+>
+> ​	value:127.0.0.1:8080
+>
+> ​	类似map
+>
+> 3、当消费者在调用接口的时候，使用服务别名就是ServerId去注册中心获取实际的远程rpc调用地址
+>
+> 4、如果消费者获取实际rpc远程调用地址之后，再使用本地HttpClient技术实现调用
+>
+> ​	*获取的远程RPC地址会缓存在jvm中，Eureka在默认情况下每隔30s更新一次服务调用地址*
+>
+> 重要概念：
+>
+> 服务提供者 ： 提供服务接口的意思
+>
+> 服务消费者 ：调用别人接口进行使用
+>
+> 一个服务既可以是提供者，也可以是消费者
+>
+> 服务注册：将服务信息注册到注册中心上
+>
+> 服务发现：从注册中心获取服务信息
+>
+> 
+>
+> 微服务中负载均衡：*本地负载均衡*
+
+
+
