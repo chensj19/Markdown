@@ -1303,45 +1303,365 @@ $ docker run -d --name nexus3 --restart=always -p 8081:8081 --mount src=nexus-da
 * 数据卷（Volumes）
 * 挂载主机目录 (Bind mounts)
 
+### 9.1 数据卷
+
+`数据卷`是一个可供一个或多个容器使用的特殊目录，它绕过 UFS，可以提供很多有用的特性：
+
+* `数据卷`可以在容器之间共享和重用
+
+* 对`数据卷`的修改会立马生效
+
+* 对`数据卷`的更新，不会影响镜像
+
+* `数据卷` 默认会一直存在，即使容器被删除
+
+  > 注意： 数据卷 的使用，类似于 Linux 下对目录或文件进行 mount，镜像中的被指定为挂载点的目录中的文件会隐藏掉，能显示看的是挂载的 数据卷 。
+
+#### 9.1.1  创建一个数据卷
+
+```bash
+$ docker volume create test-vol
+```
 
 
 
+#### 9.1.2 查看数据卷
+
+```bash
+$ docker volume ls
+DRIVER              VOLUME NAME
+local               test-vol
+```
 
 
 
+#### 9.1.3 查看指定数据卷信息
+
+```bash
+$  docker volume inspect test-vol
+[
+    {
+        "CreatedAt": "2019-02-19T13:08:27Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/test-vol/_data",
+        "Name": "test-vol",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+```
+
+#### 9.1.4 启动一个挂载数据卷的容器
+
+在用 `docker run`命令的时候，使用` --mount`标记来将`数据卷`挂载到容器里。在一次`docker run`中可以挂载多个 数据卷 。
+下面创建一个名为`web` 的容器，并加载一个`数据卷`到容器的 `/webapp` 目录。
+
+```bash
+$ docker run -d -P --name web --mount source=my-vol,target=/webapp training/webapp python app.py
+```
+
+#### 9.1.5 查看数据卷的具体信息
+
+```bash
+$ docker inspect web
+```
+
+`数据卷`信息在"Mounts"key下面
+
+```json
+"Mounts": [
+            {
+                "Type": "volume",
+                "Name": "test-vol",
+                "Source": "/var/lib/docker/volumes/test-vol/_data",
+                "Destination": "/webapp",
+                "Driver": "local",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": ""
+            }
+        ]
+```
+
+#### 9.1.6 删除数据卷
+
+```bash
+$ docker volume rm test-vol
+```
+
+`数据卷`是被设计用来持久化数据的，它的生命周期独立于容器，Docker 不会在容器被删除后自动删除 数据卷 ，并且也不存在垃圾回收这样的机制来处理没有任何容器引用的 数据卷 。如果需要在删除容器的同时移除数据卷。可以在删除容器的时候使用 `docker rm -v` 这个命令。
+无主的数据卷可能会占据很多空间，要清理请使用以下命令
+
+```bash
+$ docker volume prune
+```
+
+### 9.2 挂载主机目录
+
+#### 9.2.1 挂载一个主机目录作为数据卷
+
+使用` --mount` 标记可以指定挂载一个本地主机的目录到容器中去。
+
+```bash
+$ docker run -d -P --name web --mount type=bind,source=/src/webapp,target=/opt/webapp  training/webapp python app.py
+```
+
+上面的命令加载主机的` /src/webapp`目录到容器的`/opt/webapp`目录。这个功能在进行测试的时候十分方便，比如用户可以放置一些程序到本地目录中，来查看容器是否正常工作。本地目录的路径必须是绝对路径，以前使用 `-v` 参数时如果本地目录不存在 Docker 会自动为你创建一个文件夹，现在使用`--mount` 参数时如果本地目录不存在，Docker 会报错
+
+Docker 挂载主机目录的默认权限是 读写 ，用户也可以通过增加` readonly` 指定为`只读`。
+
+```bash
+$ docker run -d -P --name web # -v /src/webapp:/opt/webapp:ro --mount type=bind,source=/src/webapp,target=/opt/webapp,readonly training/webapp python app.py
+```
+
+加了`readonly`之后，就挂载为 只读 了。如果你在容器内`/opt/webapp`目录新建文件，会显示如下错误
+
+```bash
+/opt/webapp # touch new.txt
+touch: new.txt: Read-only file system
+```
+
+#### 9.2.2 查看数据卷的具体信息
+
+在主机里使用以下命令可以查看 web 容器的信息
+
+```bash
+$ docker inspect web
+```
+
+挂载主机目录 的配置信息在 "Mounts" Key 下面
+
+```json
+"Mounts": [
+    {
+        "Type": "bind",
+        "Source": "/src/webapp",
+        "Destination": "/opt/webapp",
+        "Mode": "",
+        "RW": true,
+        "Propagation": "rprivate"
+    }
+],
+```
+
+### 9.3 挂载一个本地主机文件作为数据卷
+
+`--mount` 标记也可以从主机挂载单个文件到容器中
+
+```bash
+$ docker run --rm -it # -v $HOME/.bash_history:/root/.bash_history --mount type=bind,source=$HOME/.bash_history,target=/root/.bash_history ubuntu:18.04 bash
+root@2affd44b4667:/# history
+1 ls
+2 diskutil list
+```
+
+这样就可以记录在容器输入过的命令了。
+
+## 十、Docker中的网络功能
+
+Docker 允许通过外部访问容器或容器互联的方式来提供网络服务。
+
+### 10.1 外部访问容器
+
+容器中可以运行一些网络应用，要让外部也可以访问这些应用，可以通过`-P`或`-p` 参数来指定端口映射。
+
+当使用`-P`标记时，Docker 会随机映射一个`32000~49900`的端口到内部容器开放的网络端口。
+
+使用`docker container ls`可以看到，本地主机的 32769被映射到了容器的5000 端口。此时访问本机的 49155 端口即可访问容器内 web 应用提供的界面。
+
+```bash
+$ docker run -d -P training/webapp python app.py
+$ docker container ls -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+306b996f559f        training/webapp     "python app.py"     12 seconds ago      Up 9 seconds        0.0.0.0:32769->5000/tcp   dazzling_easley
+```
+
+同样的，可以通过`docker logs`命令来查看应用的信息。
+
+```bash
+$ docker logs -f dazzling_easley
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+172.17.0.1 - - [19/Feb/2019 13:36:13] "GET / HTTP/1.1" 200 -
+172.17.0.1 - - [19/Feb/2019 13:36:13] "GET /favicon.ico HTTP/1.1" 404 -
+```
+
+`-p` 则可以指定要映射的端口，并且，在一个指定端口上只可以绑定一个容器。
+
+支持的格式有` ip:hostPort:containerPort | ip::containerPort |hostPort:containerPort`
+
+#### 10.1.1 映射所有接口地址
+
+使用`hostPort:containerPort`格式本地的`5000`端口映射到容器的`5000`端口，可以执行
+
+```bash
+$ docker run -d -p 5000:5000 training/webapp python app.py
+```
+
+此时默认会绑定本地所有接口上的所有地址。
+
+#### 10.1.2 映射到指定地址的指定端口
+
+可以使用`ip:hostPort:containerPort`格式指定映射使用一个特定地址，比如`localhost`地址 `127.0.0.1`
+
+```bash
+$ docker run -d -p 127.0.0.1:5000:5000 training/webapp python app.py
+```
+
+#### 10.1.3 映射到指定地址的任意端口
+
+使用`ip::containerPort`绑定`localhost`的任意端口到容器的`5000`端口，本地主机会自动分配一个端口。
+
+```bash
+$ docker run -d -p 127.0.0.1::5000 training/webapp python app.py
+```
+
+还可以使用`udp`标记来指定`udp`端口
+
+```bash
+$ docker run -d -p 127.0.0.1:5000:5000/udp training/webapp python app.py
+```
+
+#### 10.1.4 查看映射端口配置
+
+使用 docker port 来查看当前映射的端口配置，也可以查看到绑定的地址
+
+```bash
+$ docker port dazzling_easley 5000
+0.0.0.0:32769
+```
+
+注意：
+
+* 容器有自己的内部网络和 ip 地址（使用`docker inspect`可以获取所有的变量，Docker 还可以有一个可变的网络配置。）
+
+* -p 标记可以多次使用来绑定多个端口
+  例如
+
+  ```bash
+  $ docker run -d -p 5000:5000 -p 3000:80 training/webapp python app.py
+  ```
+
+### 10.2 容器互联
+
+如果你之前有 Docker 使用经验，你可能已经习惯了使用 `--link `参数来使容器互联。
+
+随着 Docker 网络的完善，强烈建议大家将容器加入自定义的 Docker 网络来连接多个容器，而不是使用 `--link `参数。
+
+#### 10.2.1 新建网络
+
+下面先创建一个新的 Docker 网络。
+
+```bash
+$ docker network create -d bridge my-net
+```
+
+-d 参数指定 Docker 网络类型，有 bridge overlay 。其中 overlay 网络类型用于 Swarm mode，在本小
+
+节中你可以忽略它。
+
+#### 10.2.2 连接容器
+
+运行一个容器并连接到新建的`my-net`网络
+
+```bash
+$ docker run -it --rm --name busybox1 --network my-net busybox sh
+```
+
+打开新的终端，再运行一个容器并加入到 my-net 网络
+
+```bash
+$ docker run -it --rm --name busybox2 --network my-net busybox sh
+```
 
 
+再打开一个新的终端查看容器信息
+
+```bash
+$ docker container ls
+CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+b47060aca56b busybox "sh" 11 minutes ago Up 11 minutes busybox2
+8720575823ec busybox "sh" 16 minutes ago Up 16 minutes busybox1
+```
 
 
+下面通过 ping 来证明 busybox1 容器和 busybox2 容器建立了互联关系。
+
+在`busybox1`容器输入以下命令
+
+```bash
+/ # ping busybox2
+PING busybox2 (172.19.0.3): 56 data bytes
+64 bytes from 172.19.0.3: seq=0 ttl=64 time=0.072 ms
+64 bytes from 172.19.0.3: seq=1 ttl=64 time=0.118 ms
+```
+
+用 ping 来测试连接 busybox2 容器，它会解析成 172.19.0.3 。
+同理在 busybox2 容器执行 ping busybox1 ，也会成功连接到。
+
+```bash
+/ # ping busybox1
+PING busybox1 (172.19.0.2): 56 data bytes
+64 bytes from 172.19.0.2: seq=0 ttl=64 time=0.064 ms
+64 bytes from 172.19.0.2: seq=1 ttl=64 time=0.143 ms
+```
+
+这样， busybox1 容器和 busybox2 容器建立了互联关系。
+
+#### 10.2.3 Docker Compose
+
+如果你有多个容器之间需要互相连接，推荐使用`Docker Compose`。
+
+### 10.3 配置DNS
+
+如何自定义配置容器的主机名和 DNS 呢？秘诀就是 Docker 利用虚拟文件来挂载容器的 3 个相关配置文件。
+
+在容器中使用`mount`命令可以看到挂载信息：
+
+```bash
+$ mount
+/dev/disk/by-uuid/1fec...ebdf on /etc/hostname type ext4 ...
+/dev/disk/by-uuid/1fec...ebdf on /etc/hosts type ext4 ...
+tmpfs on /etc/resolv.conf type tmpfs ...
+```
+
+这种机制可以让宿主主机 DNS 信息发生更新后，所有 Docker 容器的 DNS 配置通过`/etc/resolv.conf`
+
+文件立刻得到更新。
+
+配置全部容器的 DNS ，也可以在`/etc/docker/daemon.json`文件中增加以下内容来设置。
+
+```json
+{
+    "dns" : [
+        "114.114.114.114",
+        "8.8.8.8"
+    ]
+}
+```
 
 
+这样每次启动的容器 DNS 自动配置为 114.114.114.114 和 8.8.8.8 。使用以下命令来证明其已经生效。
 
+```bash
+$ docker run -it --rm ubuntu:18.04 cat etc/resolv.conf
+nameserver 114.114.114.114
+nameserver 8.8.8.8
+```
 
+如果用户想要手动指定容器的配置，可以在使用 docker run 命令启动容器时加入如下参数：
 
+`-h HOSTNAME`或者` --hostname=HOSTNAME`设定容器的主机名，它会被写到容器内的`/etc/hostname`和`/etc/hosts`。但它在容器外部看不到，既不会在`docker container ls`中显示，也不会在其他的容器的`/etc/hosts`看到。
+`--dns=IP_ADDRESS`添加 DNS 服务器到容器的`/etc/resolv.conf`中，让容器用这个服务器来解析所有不在`/etc/hosts`中的主机名。
+`--dns-search=DOMAIN`设定容器的搜索域，当设定搜索域为`.example.com`时，在搜索一个名为 host 的主机时，DNS 不仅搜索 host，还会搜索host.example.com`。
 
+> 注意：如果在容器启动时没有指定最后两个参数，Docker 会默认用主机上的/etc/resolv.conf 来配置容器。
 
+### 
 
+## 十一、常用命令
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 常用命令
-
-### 获取镜像
+### 11.1 获取镜像
 
 ```php
 docker pull
@@ -1358,7 +1678,7 @@ docker pull centos:centos6
 实际上相当于 docker pull registry.hub.docker.com/centos:centos6命令，即从注册服务器 registry.hub.docker.com 中的 centos 仓库来下载标记为 centos6 的镜像。
 有时候官方仓库注册服务器下载较慢，可以从其他仓库下载。 从其它仓库下载时需要指定完整的仓库注册服务器地址。
 
-### 查看镜像列表
+### 11.2 查看镜像列表
 
 ```php
 docker images
@@ -1383,7 +1703,7 @@ ubuntu                   latest              2fa927b5cdd3        9 weeks ago    
 - 创建时间
 - 镜像大小
 
-### 利用 Dockerfile 来创建镜像[ ](http://hainiubl.com/topics/13#%E5%88%A9%E7%94%A8-Dockerfile-%E6%9D%A5%E5%88%9B%E5%BB%BA%E9%95%9C%E5%83%8F)
+### 11.3 利用 Dockerfile 来创建镜像[ ](http://hainiubl.com/topics/13#%E5%88%A9%E7%94%A8-Dockerfile-%E6%9D%A5%E5%88%9B%E5%BB%BA%E9%95%9C%E5%83%8F)
 
 ```php
 docker build
@@ -1444,7 +1764,7 @@ Successfully built 5f9aa91b0c9e
 
 其中 -t 标记来添加 tag，指定新的镜像的用户信息。 “.” 是 Dockerfile 所在的路径（当前目录），也可以替换为一个具体的 Dockerfile 的路径。注意一个镜像不能超过 127 层。
 
-### 用docker images 查看镜像列表
+### 11.4 用docker images 查看镜像列表
 
 ```php
 $ docker images
@@ -1456,7 +1776,7 @@ ubuntu                   latest              2fa927b5cdd3        9 weeks ago    
 
 细心的朋友可以看到最后一层的ID（5f9aa91b0c9e）和 image id 是一样的
 
-### 上传镜像
+### 11.5 上传镜像
 
 ```php
 docker push
@@ -1470,7 +1790,7 @@ docker push
 $ docker push hainiu/httpd:1.0
 ```
 
-### 创建容器
+### 11.6 创建容器
 
 ```php
 docker create <image-id>
@@ -1507,7 +1827,7 @@ $ docker create -it --name centos6_container -v /src/webapp:/opt/webapp centos:c
 
 这个功能在进行测试的时候十分方便，比如用户可以放置一些程序到本地目录中，来查看容器是否正常工作。本地目录的路径必须是绝对路径，如果目录不存在 Docker 会自动为你创建它。
 
-### 启动容器
+### 11.7 启动容器
 
 ```php
 docker start <container-id>
@@ -1525,7 +1845,7 @@ $ docker start -i centos6_container
 $ docker start -i b3cd0b47fe3d
 ```
 
-### 进入容器
+### 11.8 进入容器
 
 ```php
 docker exec <container-id>
@@ -1537,19 +1857,19 @@ docker exec <container-id>
 docker exec -it centos6_container bash
 ```
 
-### 停止容器
+### 11.9 停止容器
 
 ```php
 docker stop <container-id>
 ```
 
-### 删除容器
+### 11.10 删除容器
 
 ```php
 docker rm <container-id>
 ```
 
-### 运行容器
+### 11.11 运行容器
 
 ```php
 docker run <image-id>
@@ -1564,7 +1884,7 @@ docker run就是docker create和docker start两个命令的组合,支持参数�
 docker create -it --rm --name centos6_container centos:centos6
 ```
 
-### 查看容器列表
+### 11.12 查看容器列表
 
 ```php
 docker ps
@@ -1572,7 +1892,7 @@ docker ps
 
 docker ps 命令会列出所有运行中的容器。这隐藏了非运行态容器的存在，如果想要找出这些容器，增加 -a 参数。
 
-### 删除镜像
+### 11.13 删除镜像
 
 ```php
 docker rmi <image-id>
@@ -1581,7 +1901,7 @@ docker rmi <image-id>
 删除构成镜像的一个只读层。你只能够使用docker rmi来移除最顶层（top level layer）
 （也可以说是镜像），你也可以使用-f参数来强制删除中间的只读层。
 
-### commit容器
+### 11.14 commit容器
 
 ```php
 docker commit <container-id>
@@ -1589,7 +1909,7 @@ docker commit <container-id>
 
 将容器的可读写层转换为一个只读层，这样就把一个容器转换成了不可变的镜像。
 
-### 镜像保存
+### 11.15 镜像保存
 
 ```php
 docker save <image-id>
@@ -1608,7 +1928,7 @@ $ docker save  -o centos_images.tar centos:centos6
 $ docker save  -o centos_images.tar centos:centos6 > centos_images.tar
 ```
 
-### 容器导出
+### 11.16 容器导出
 
 ```php
 docker export <container-id>
@@ -1618,7 +1938,7 @@ docker export <container-id>
 的内容。expoxt后的容器再import到Docker中，只有一个容器当前状态的镜像；而save后的镜像则不同，
 它能够看到这个镜像的历史镜像。
 
-### inspect
+### 11.17 inspect
 
 ```php
 docker inspect <container-id> or <image-id>
