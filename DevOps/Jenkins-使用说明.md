@@ -90,6 +90,105 @@ $ java -jar jenkins.war --httpPort=9090
   * VS Team Services Continuous Deployment
 * Gitee
   * Gitee
+* NodeJS
+  * NodeJS
 
 ### 2、项目构建
 
+#### (1) Node.js项目
+
+* 系统中需要安装好NodeJS、Tar打包工具
+
+* Jenkins配置
+
+  * 配置NodeJS 
+
+    * 在`系统管理\全局工具配置`配置NodeJS的环境参数
+
+    ![NodeJS](https://img-blog.csdnimg.cn/20190322223317411.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+  * 项目创建
+
+    * 新建任务  输入任务名称
+    * 选择**构建一个自由风格的软件项目**
+    * 选择**源代码管理器**
+
+    ![源码管理](https://img-blog.csdnimg.cn/20190322223450147.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+    * `Workspace name` 注意修改这个参数，使用TFS的时候需要进行自定义，避免报错
+
+    * **构建触发器** 输入自定义的构建参数
+
+    * **构建环境** 选择`Provide Node & npm bin/ folder to PATH`并且将前面配置的`NodeJS`选好
+
+    * **构建** 根据使用操作系统，选择不同的构建方式
+
+      * windows
+
+        * **执行 Windows 批处理命令** 
+
+        ```bash
+        $ cnpm i &cnpm run build & tar -cvf mbk.tar mbk
+        ```
+
+#### (2) Java项目
+
+* 系统需要配置Java、Maven、Gradle
+
+* Jenkins配置
+
+  * 配置Java、Maven、Gradle
+
+    * 在`系统管理\全局工具配置`配置Java、Maven、Gradle的环境参数
+
+      * JDK
+
+      ![JDK](https://img-blog.csdnimg.cn/20190322223516536.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+      * Maven
+
+        ![Maven](https://img-blog.csdnimg.cn/2019032222354636.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+      * Gradle
+
+      ![ Gradle](https://img-blog.csdnimg.cn/20190322223604498.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+    
+
+  * 项目构建
+
+    * 创建任务
+
+    ![创建任务](https://img-blog.csdnimg.cn/20190322223624927.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+    * 配置任务
+
+      * 项目描述和JDK选择
+
+      ![项目描述和JDK选择](https://img-blog.csdnimg.cn/20190322223920455.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+      * **源码管理**
+
+        ![源码管理](https://img-blog.csdnimg.cn/20190322223937696.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+        * 在输入`Project Path`的时候会出现错误，这个时候可以不用管它，继续操作
+
+          ![错误](https://img-blog.csdnimg.cn/20190322224044525.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+      * **构建**
+
+        * 根据项目类型选择Maven、Gradle、Ant等项目
+
+        * ![项目类型](https://img-blog.csdnimg.cn/20190322224121566.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+        * ```bash
+          clean -DskipTests install -P prod
+          ```
+
+        > -P 为自定义参数，指定使用环境参数
+
+    * 测试任务
+
+      * 保存任务，立即构建，检查是否存在问题，出现下面的信息，代表创建成功
+
+      ![测试任务](https://img-blog.csdnimg.cn/20190322224140799.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
