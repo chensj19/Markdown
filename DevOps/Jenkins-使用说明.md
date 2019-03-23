@@ -192,3 +192,58 @@ $ java -jar jenkins.war --httpPort=9090
       * 保存任务，立即构建，检查是否存在问题，出现下面的信息，代表创建成功
 
       ![测试任务](https://img-blog.csdnimg.cn/20190322224140799.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzajEzNjU1NTUyNDc4,size_16,color_FFFFFF,t_70)
+
+## 三、Linux下开机启动配置
+
+切换目录到`/etc/init.d/`位置，创建脚本`jenkins`:
+
+```bash
+#!/usr/bin/env bash
+# chkconfig: 2345 20 80
+#description: start and stop server
+JENKINS_ROOT=/opt/jenkins
+JENKINSFILENAME=jenkins.war
+case $1 in
+    start)
+        echo "Starting $JENKINSFILENAME ..."  
+        nohup $JENKINS_ROOT/startup.sh >> $JENKINS_ROOT/jenkins-run.log 2>&1 &
+        ;;
+    stop)
+        echo "stopping $$JENKINSFILENAME ..."
+        ps -ef|grep $JENKINSFILENAME |awk '{print $2}'|while read pid  
+        do
+           kill -9 $pid
+           echo " $pid kill"  
+        done
+        ;;
+    restart)
+        "$0" stop
+        sleep 3
+        "$0" start
+        ;;
+    status)
+        ps -ef|grep $JENKINSFILENAME*
+        ;;
+    *)
+        printf 'Usage: %s {start|stop|restart|status}\n' "$prog"
+        ;;
+esac
+```
+
+**`startup.sh`**:
+
+```bash
+#!/bin/bash
+JENKINS_ROOT=/opt/jenkins
+export JENKINS_HOME=/opt/jenkins_home
+/opt/jdk1.8.0_181/bin/java -jar $JENKINS_ROOT/jenkins.war --httpPort=9090
+```
+
+**配置开机项**
+
+```bash
+$ chkconfig --add jenkins
+```
+
+完成上述配置即可实现开机启动`Jenkins`
+
