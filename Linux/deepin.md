@@ -12,3 +12,4 @@ xdg-mime default dde-file-manager.desktop inode/directory
 gvfs-mime --set inode/directory dde-file-manager.desktop
 ```
 使用上述命令即可完成更改打开文件夹选项
+
