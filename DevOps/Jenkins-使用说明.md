@@ -252,14 +252,22 @@ $ chkconfig --add jenkins
 ```dockerfile
 FROM centos
 ADD jdk-8u181-linux-x64.tar.gz /usr/local/
+ADD node-v10.15.3-linux-x64.tar.xz /usr/local/
+ADD apache-tomcat-9.0.17.tar.gz /usr/local/
+ADD apache-maven-3.6.0-bin.tar.gz /usr/local/
+ADD gradle-5.3-bin.zip /usr/local/
 CMD mkdir /opt/jenkins/
 CMD mkdir /opt/jenkins_home/
 ADD jenkins.war /opt/jenkins/
 ENV JAVA_HOME /usr/local/jdk1.8.0_181
+ENV CATALINA_HOME /usr/local/apache-tomcat-9.0.17
+ENV CATALINA_BASE /usr/local/apache-tomcat-9.0.17
+ENV GRADLE_HOME /usr/local/apache-tomcat-9.0.17
+ENV MAVEN_HOME /usr/local/apache-maven-3.6.0
 ENV JENKINS_ROOT /opt/jenkins
 ENV JENKINS_HOME /opt/jenkins_home
 ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
-ENV PATH $PATH:$JAVA_HOME/bin
+ENV PATH $PATH:$JAVA_HOME/bin:$CATALINA_HOME/lib:$CATALINA_HOME/bin:$GRADLE_HOME/bin:$MAVEN_HOME/bin
 EXPOSE 8080
 CMD yum install -y git
 CMD nohup java -jar $JENKINS_ROOT/jenkins.war >> $JENKINS_ROOT/jenkins-run.log 2>&1 &

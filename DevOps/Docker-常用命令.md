@@ -74,7 +74,7 @@ $ docker container restart
 * `docker attach`
 
   * ```bash
-    docker attach 3749
+    $ docker attach 3749
     ```
 
   * 使用exit退出的时候，将会关闭容器
@@ -89,8 +89,3 @@ $ docker container restart
 
 * 可以使用`docker container rm` 来删除一个处于终止状态的容器
 * 可以清理掉所有处于终止状态的容器`docker container prune`
-
-
-
-
-
