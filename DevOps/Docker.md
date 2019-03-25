@@ -160,6 +160,8 @@ Status: Downloaded newer image for ubuntu:18.04
 
 ### 6.2 运行镜像
 
+
+
 有了镜像后，我们就能够以这个镜像为基础启动并运行一个容器。以上面的`ubuntu:18.04 `为例，如果我们打算启动里面的 `bash` 并且进行交互式操作的话，可以执行下面的命令
 
 ```bash
@@ -253,7 +255,7 @@ docker image ls -f dangling=true
 docker image prune
 ```
 
-```ba
+```bash
 docker image prune
 WARNING! This will remove all dangling images.
 Are you sure you want to continue? [y/N] y

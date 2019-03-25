@@ -247,3 +247,23 @@ $ chkconfig --add jenkins
 
 完成上述配置即可实现开机启动`Jenkins`
 
+## 四、Docker中使用
+
+```dockerfile
+FROM centos
+ADD jdk-8u181-linux-x64.tar.gz /usr/local/
+CMD mkdir /opt/jenkins/
+CMD mkdir /opt/jenkins_home/
+ADD jenkins.war /opt/jenkins/
+ENV JAVA_HOME /usr/local/jdk1.8.0_181
+ENV JENKINS_ROOT /opt/jenkins
+ENV JENKINS_HOME /opt/jenkins_home
+ENV CLASSPATH $JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ENV PATH $PATH:$JAVA_HOME/bin
+EXPOSE 8080
+CMD yum install -y git
+CMD nohup java -jar $JENKINS_ROOT/jenkins.war >> $JENKINS_ROOT/jenkins-run.log 2>&1 &
+```
+
+
+
