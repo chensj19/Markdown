@@ -100,3 +100,12 @@ sudo docker run hello-world
 ```
 
 如果能够正常下载，并能够正常执行，则说明docker正常安装。
+
+### 8. 问题
+
+Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get http://%2Fvar%2Frun%2Fdocker.sock/v1.39/images/json: dial unix /var/run/docker.sock: connect: permission denied
+
+```bash
+$ sudo gpasswd -a ${USER} docker
+```
+
