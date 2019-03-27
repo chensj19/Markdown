@@ -89,3 +89,171 @@ $ docker container restart
 
 * 可以使用`docker container rm` 来删除一个处于终止状态的容器
 * 可以清理掉所有处于终止状态的容器`docker container prune`
+
+## 3、docker安装
+
+### 3.1 CentOS
+
+#### 卸载旧版本
+
+```bash
+$ sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+```
+
+
+
+#### 安装需要的文件
+
+```bash
+$ sudo yum install -y yum-utils \
+  device-mapper-persistent-data \
+  lvm2
+```
+
+#### 设置docker的源
+
+```bash
+# 官方源
+$ sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+# 阿里源
+$ sudo yum-config-manager \
+    --add-repo \
+    https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+```
+
+#### 安装
+
+```bash
+$ sudo yum install docker-ce docker-ce-cli containerd.io
+```
+
+#### 查看可安装版本
+
+```bash
+$ yum list docker-ce --showduplicates | sort -r
+
+# 安装指定版本
+
+$ sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.io
+```
+
+#### 启动Docker
+
+```bash
+$ sudo systemctl start docker
+$ sudo systemctl enable docker
+```
+
+### 3.2 Ubuntu
+
+#### 卸载旧版本
+
+```bash
+$ sudo apt-get remove docker docker-engine docker.io containerd runc
+
+```
+
+#### 更新APT
+
+```bash
+$ sudo apt-get update
+
+```
+
+#### 安装需要的文件
+
+```bash
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+```
+
+#### 获取Docker的官方GPG密钥
+
+```bash
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+```
+
+存在一种情况，访问不到。。。。使用阿里源
+
+##### **添加Docker的阿里镜像GPG key**
+
+```bash
+$ curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+
+```
+
+#### **验证该key是否安装成功(一般提示ok就不用验证了）**
+
+```bash
+$ sudo apt-key fingerprint 0EBFCD88
+```
+
+#### **设置stable存储库**
+
+```bash
+$ sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+```
+
+或者 科大
+
+```bash
+$ sudo add-apt-repository \
+    "deb [arch=amd64] https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu \
+    $(lsb_release -cs) \
+    stable"
+```
+
+或者 阿里
+
+```bash
+$ sudo add-apt-repository \
+    "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu \
+    $(lsb_release -cs) \
+    stable"
+```
+
+#### **再次更新apt包索引**
+
+```bash
+$ sudo apt-get update
+```
+
+#### **列出可用的版本并安装自己想要的版本**
+
+```bash
+$ sudo apt-cache madison docker-ce
+```
+
+#### 安装
+
+```bash
+$ sudo apt-get install -y docker-ce
+```
+
+#### 启动与检查
+
+```bash
+# 开启docker服务
+$ sudo systemctl start docker
+# 重启docker服务
+$ sudo service docker restart
+#  验证docker 显示active表示已经启动
+$ systemctl status docker
+```
+
