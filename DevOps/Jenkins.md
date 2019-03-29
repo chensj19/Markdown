@@ -45,4 +45,9 @@
   --httpPort=8000 
   ```
 
-  
+* Linux 修改端口
+
+```bash
+$ vim /etc/default/jenkins
+```
+

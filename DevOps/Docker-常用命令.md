@@ -257,3 +257,11 @@ $ sudo service docker restart
 $ systemctl status docker
 ```
 
+## 4、修改加速器
+
+```json
+{
+  "registry-mirrors": ["https://registry.docker-cn.com","http://f1361db2.m.daocloud.io","https://0vtdrvzb.mirror.swr.myhuaweicloud.com"]
+}
+```
+
