@@ -19,5 +19,6 @@ gvfs-mime --set inode/directory dde-file-manager.desktop
 
 ```bash
 $ sudo systemctl disable lightdm
+sudo systemctl enable lightdm
 ```
 

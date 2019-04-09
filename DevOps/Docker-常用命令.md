@@ -263,5 +263,9 @@ $ systemctl status docker
 {
   "registry-mirrors": ["https://registry.docker-cn.com","http://f1361db2.m.daocloud.io","https://0vtdrvzb.mirror.swr.myhuaweicloud.com"]
 }
+
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker
 ```
 
