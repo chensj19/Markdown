@@ -40,3 +40,12 @@
   * `milestone`
     * `https://repo.spring.io/milestone`
 
+## 源码与文档
+
+```bash
+# 源码
+$ mvn dependency:sources
+# 文档
+$ mvn dependency:resolve -Dclassifier=javadoc
+```
+
