@@ -64,3 +64,76 @@
 ## class 结合v-bind使用
 
 * 需要根据可变表达式的结果来给class赋值，就需要使用v-bind
+
+
+
+## Vue状态管理
+
+### 简介
+
+vuex是专为vue.js应用程序开发的状态管理模式。它采用集中存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。vuex也集成刀vue的官方调试工具devtools extension，提供了诸如零配置的time-travel调试、状态快照导入导出等高级调试功能。
+
+### Vuex的思想
+
+当我们在页面上点击一个按钮，它会处发(dispatch)一个`action`, `action`随后会执行(`commit`)一个`mutation`, `mutation` 立即会改变`state`,` state` 改变以后,我们的页面会`state` 获取数据，页面发生了变化。 Store 对象，包含了我们谈到的所有内容，`action`, `state`, `mutation`，所以是核心了
+
+### **状态管理核心**
+
+**状态管理有5个核心，分别是state、getter、mutation、action以及module。**
+
+#### 1、state
+
+state为单一状态树，在state中需要定义我们所需要管理的数组、对象、字符串等等，只有在这里定义了，在vue.js的组件中才能获取你定义的这个对象的状态。
+
+#### 2、getter
+
+getter有点类似vue.js的计算属性，当我们需要从store的state中派生出一些状态，那么我们就需要使用getter，getter会接收state作为第一个参数，而且getter的返回值会根据它的依赖被缓存起来，只有getter中的依赖值（state中的某个需要派生状态的值）发生改变的时候才会被重新计算。
+
+#### 3、mutation
+
+更改store中state状态的唯一方法就是提交mutation，就很类似事件。每个mutation都有一个字符串类型的事件类型和一个回调函数，我们需要改变state的值就要在回调函数中改变。我们要执行这个回调函数，那么我们需要执行一个相应的调用方法：store.commit。
+
+#### 4、action
+
+action可以提交mutation，在action中可以执行store.commit，而且action中可以有任何的异步操作。在页面中如果我们要嗲用这个action，则需要执行store.dispatch5、module module其实只是解决了当state中很复杂臃肿的时候，module可以将store分割成模块，每个模块中拥有自己的state、mutation、action和getter。
+
+简单的Store模式
+
+```vue
+var store = {
+  debug: true,
+  state: {
+    message: 'Hello!'
+  },
+  setMessageAction (newValue) {
+    if (this.debug) console.log('setMessageAction triggered with', newValue)
+    this.state.message = newValue
+  },
+  clearMessageAction () {
+    if (this.debug) console.log('clearMessageAction triggered')
+    this.state.message = ''
+  }
+}
+```
+
+所有 store 中 state 的改变，都放置在 store 自身的 action 中去管理。这种集中式状态管理能够被更容易地理解哪种类型的 mutation 将会发生，以及它们是如何被触发。当错误出现时，我们现在也会有一个 log 记录 bug 之前发生了什么。
+
+此外，每个实例/组件仍然可以拥有和管理自己的私有状态：
+
+```vue
+var vmA = new Vue({
+  data: {
+    privateState: {},
+    sharedState: store.state
+  }
+})
+
+var vmB = new Vue({
+  data: {
+    privateState: {},
+    sharedState: store.state
+  }
+})
+```
+
+![](https://img-blog.csdn.net/20180926004258547?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM4NjU4NTY3/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
