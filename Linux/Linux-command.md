@@ -5,8 +5,10 @@
 ### 1.1 解压命令
 
 * `tar.gz` 
+  
   * `tar zxvf  ***.tar.gz`
 * `tar.xz`
+  
   * ` tar xvJf  ***.tar.xz`
 * `zip`
   * 压缩命令
@@ -280,3 +282,18 @@ $ systemctl restart vsftpd.service
 ```
 
 可通过 ` tail -f /var/log/secure` 指令，查看服务器安全日志，便于分析错误问题，设置操作效果一定要仔细.....
+
+## 4.SSH
+
+```bash
+# 安装ssh
+$ yum install -y openssl openssh-server
+# 启动ssh的服务
+$ systemctl start sshd.service
+# 设置开机自动启动ssh服务
+$ systemctl enable sshd.service
+$ vim /etc/ssh/sshd_config
+$
+$
+```
+
