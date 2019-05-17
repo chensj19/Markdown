@@ -3677,3 +3677,330 @@ public class AuthTokenFilter extends ZuulFilter {
 }
 ```
 
+
+
+
+
+## 十、Spring Boot Security
+
+### 10.1 关闭基础认证访问
+
+#### 10.1.1 登陆
+
+```bash
+    根据项目启动的提供的密码登陆，默认账户user
+```
+
+#### 10.1.2`exclude`方法
+
+```java
+@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
+public class WinningSpringSecurityApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(WinningSpringSecurityApplication.class, args);
+    }
+}
+```
+
+#### 10.1.3 配置账户
+
+```yaml
+spring:
+  security:
+    user:
+      name: admin
+      password: 123456
+```
+
+### 10.2 配置
+
+#### 10.2.1 基础配置
+
+在内存中配置一个用户的认证信息，指定用户名、密码和角色
+
+```java
+@EnableWebSecurity
+@Configuration
+public class BasicSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        // 在内存中中创建一个用户的认证信息
+        auth.inMemoryAuthentication()
+                // 设置用户名称为 chensj
+                .withUser("chensj")
+                // 设置用户密码为 123456
+                .password("123456")
+                // 设置角色为 USER
+                .roles("USER");
+
+    }
+}
+```
+
+#### 10.2.2 Http 配置
+
+```java
+@EnableWebSecurity
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class HttpSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                // 认证所有的请求
+                .authorizeRequests()
+                // 下面这些请求不验密
+                .mvcMatchers("/css/**","/","/index","/js/**","/static/**").permitAll()
+                // 下面这个资源需要验密，并且需要角色USER
+                .mvcMatchers("/user/**").hasRole("USER")
+                .mvcMatchers("/blog/**").hasRole("USER")
+                .and()
+                // 表单登录
+                .formLogin()
+                // 表单页面
+                .loginPage("/login")
+                // 表单登录失败
+                .failureUrl("/login-error")
+                // 密码参数名
+                .passwordParameter("passwd")
+                // 用户名参数名
+                .usernameParameter("username")
+                // 登录成功的页面，默认为/
+                //.successForwardUrl("/home")
+                .and()
+                // 异常处理会重定向到401
+                .exceptionHandling().accessDeniedPage("/401");
+        // 注销成功会重定向到首页
+        http.logout().logoutSuccessUrl("/");
+    }
+
+
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService());
+
+    }
+
+    @Override
+    @Bean
+    protected UserDetailsService userDetailsService() {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        manager.createUser(User.withUsername("chensj").password("123456").roles("USER").build());
+        manager.createUser(User.withUsername("admin").password("123456").roles("ADMIN").build());
+        return manager;
+    }
+}
+```
+
+#### 10.2.3 方法拦截
+
+	在Spring Security 2.0之后，提供了方法级别的安全支持，并且提供了JSR-250的支持，开启这种配置的方法代码如下：
+
+```java
+@EnableWebSecurity
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class HttpSecurityConfig extends WebSecurityConfigurerAdapter {}
+```
+
+* `@EnableGlobalMethodSecurity` 开启方法级别的保护，可选参数如下
+  * `prePostEnabled`：Spring Security的Pre和Post注解是否可用，即`@PreAuthorize`和`@PostAuthorize`是否可用
+  * `securedEnabled`：Spring Security的`@Secured`注解是否可用
+  * `jsr250Enabled`： Spring Security的JSR-250注解是否可用
+
+常规情况下，只会使用`prePostEnabled`这个属性。因为`@PreAuthorize`和`@PostAuthorize`更加适合方法级别的安全控制，并且支持Spring EL表达式，适合Spring开发者。其中`@PreAuthorize`是在进入方法前进行授权验证，`@PostAuthorize`是在方法执行后在进行权限验证，通常使用的比较少
+
+##### 10.2.3.1 注解使用
+
+```java
+@PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+@GetMapping(value = "/{id}/delete")
+public ModelAndView delete(@PathVariable Long id, Model model){
+    blogService.deleteBlogById(id);
+    model.addAttribute("blogs",blogService.findAllBlogs());
+    return new ModelAndView("blog/list","blogModel",model);
+}
+```
+
+上面这个方法就是说明只能是具有admin角色的用户才能够操作。
+
+#### 10.2.4 从数据库读取用户信息
+
+##### pom.xml
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+<dependency>
+    <groupId>mysql</groupId>	
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+```
+
+##### entity
+
+###### user
+
+```java
+@Data
+@Entity
+@Table(name = "sec_user")
+public class User implements UserDetails, Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "username",nullable = false,unique = true)
+    private String username;
+    @Column
+    private String password;
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinTable(name = "sec_user_role",
+        joinColumns = @JoinColumn(name = "user_id",referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id",referencedColumnName = "id")
+    )
+    private List<Role> authorities;
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+
+###### role
+
+```java
+@Data
+@Entity
+@Table(name = "sec_role")
+public class Role implements GrantedAuthority {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "role_name",nullable = false)
+    private String roleName;
+
+    @Override
+    public String getAuthority() {
+        return roleName;
+    }
+}
+```
+
+##### repository
+
+```java
+@Repository
+public interface UserRepository extends JpaRepository<User,Long> {
+	User findByUsername(String username);
+}
+```
+
+##### service
+
+```java
+// 接口类
+public interface IUserService {
+}
+// 实现类
+@Service
+public class UserServiceImpl implements IUserService, UserDetailsService {
+    @Autowired
+    private UserRepository userRepository;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username);
+    }
+}
+```
+
+##### security config
+
+```java
+@EnableWebSecurity
+@Configurable
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class DatabaseSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                // 认证所有的请求
+                .authorizeRequests()
+                // 下面这些请求不验密
+                .mvcMatchers("/css/**","/","/index","/js/**","/static/**").permitAll()
+                // 下面这个资源需要验密，并且需要角色USER
+                .mvcMatchers("/user/**").hasRole("USER")
+                // 下面这个资源需要权限验证，角色是USER或者ADMIN都可
+                .mvcMatchers("/blog/**").hasAnyRole("USER","ADMIN")
+                .and()
+                // 表单登录
+                .formLogin()
+                // 表单页面
+                .loginPage("/login")
+                // 表单登录失败
+                .failureUrl("/login-error")
+                // 密码参数名
+                .passwordParameter("passwd")
+                // 用户名参数名
+                .usernameParameter("username")
+                // 登录成功的页面，默认为/
+                //.successForwardUrl("/home")
+                .and()
+                // 异常处理会重定向到401
+                .exceptionHandling().accessDeniedPage("/401");
+        // 注销成功会重定向到首页
+        http.logout().logoutSuccessUrl("/");
+    }
+
+
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+         auth.userDetailsService(userDetailsService);
+
+    }
+}
+```
+
+##### SQL
+
+```sql
+INSERT INTO `sec_user`(`id`, `password`, `username`) VALUES (1, '123456', 'chensj');
+INSERT INTO `sec_user`(`id`, `password`, `username`) VALUES (2, '123456', 'admin');
+INSERT INTO `sec_role`(`id`, `role_name`) VALUES (1, 'ROLE_USER');
+INSERT INTO `sec_role`(`id`, `role_name`) VALUES (2, 'ROLE_ADMIN');
+INSERT INTO `sec_user_role`(`user_id`, `role_id`) VALUES (1, 1);
+INSERT INTO `sec_user_role`(`user_id`, `role_id`) VALUES (2, 1);
+INSERT INTO `sec_user_role`(`user_id`, `role_id`) VALUES (2, 2);
+```
+
+这个时候登录的时候与前面登录是一致的，没有任何区别
+
+### 10.3 总结
+
+		使用 Spring Security 还是比较简单的，没有想象中那么复杂。首先引入 Spring Security 相关的的依赖，然后写一个配置类，该配置类继承了`WebSecurityConfigurerAdapter`，并在该配置类上加`＠EnableWebSecurity` 注解开启`Web Security`。再需要`AuthenticationManagerBuilder`,`AuthenticationManagerBuilder`配置了读取用户的认证信息的方式，可以从内存中读取，也可以从数据库中读取，或者用其他的方式。其次 ，需要配置`HttpSecurity`, `HttpSecurity`配置了请求 的认证规则，比如： 哪些URL请求需要认证、哪些不需要，以及需要什么权限才能访问。最后，如果需要开启方法级别的安全配置，需要在配置类上加`@EnableGlobalMethodSecurity`注解开启，方法级别上的安全控制支持`prePostEnabled`、 `securedEnabled`、`jsr250Enabled`三种方式。
+
