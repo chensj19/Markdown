@@ -4004,3 +4004,38 @@ INSERT INTO `sec_user_role`(`user_id`, `role_id`) VALUES (2, 2);
 
 		使用 Spring Security 还是比较简单的，没有想象中那么复杂。首先引入 Spring Security 相关的的依赖，然后写一个配置类，该配置类继承了`WebSecurityConfigurerAdapter`，并在该配置类上加`＠EnableWebSecurity` 注解开启`Web Security`。再需要`AuthenticationManagerBuilder`,`AuthenticationManagerBuilder`配置了读取用户的认证信息的方式，可以从内存中读取，也可以从数据库中读取，或者用其他的方式。其次 ，需要配置`HttpSecurity`, `HttpSecurity`配置了请求 的认证规则，比如： 哪些URL请求需要认证、哪些不需要，以及需要什么权限才能访问。最后，如果需要开启方法级别的安全配置，需要在配置类上加`@EnableGlobalMethodSecurity`注解开启，方法级别上的安全控制支持`prePostEnabled`、 `securedEnabled`、`jsr250Enabled`三种方式。
 
+
+
+## 十一、Spring Cloud Oauth2
+
+OAth2是一个标准的授权协议。
+
+在认证与授权的过程中，主要包含以下3种角色。
+
+- 服务提供方 Authorization Server。
+- 资源持有者 Resource Server。
+- 客户端 Client。
+
+OAuth2的认证流程如图所示，具体如下。
+
+![img](https://ask.qcloudimg.com/http-save/yehe-1483357/2lau4u96rc.png?imageView2/2/w/1620)
+
+（1）用户（资源持有者）打开客户端 ，客户端询问用户授权。
+
+（2）用户同意授权。
+
+（3）客户端向授权服务器申请授权。
+
+（4）授权服务器对客户端进行认证，也包括用户信息的认证，认证成功后授权给予令牌。
+
+（5）客户端获取令牌后，携带令牌向资源服务器请求资源。
+
+（6）资源服务器确认令牌正确无误，向客户端释放资源。
+
+OAuth2 Provider 的角色被分为 Authorization Server（授权服务）和 Resource Service（资源服务），通常它们不在同一个服务中，可能一个 Authorization Service 对应多个 Resource Service。Spring OAuth2 需配合 Spring Security 一起使用，所有的请求由 Spring MVC 控制器处理，并经过一系列的Spring Security过滤器。
+
+在Spring Security过滤器链中有以下两个节点，这两个节点是向 Authorization Service 获取验证和授权的。
+
+- 授权节点：默认为 /oauth/authorize。
+- 获取Token节点：默认为 /oauth/token。
+
