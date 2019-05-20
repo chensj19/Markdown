@@ -2,7 +2,7 @@
 
 ​	rabbitMQ是一个在AMQP协议标准基础上完整的，可服用的企业消息系统。它遵循Mozilla Public License开源协议，采用 Erlang 实现的工业级的消息队列(MQ)服务器，Rabbit MQ 是建立在Erlang OTP平台上。
 
-## 1、安装Rabbit MQ
+## 1、Windows安装Rabbit MQ
 
 ### 1.1 安装Erlang
 
@@ -169,7 +169,7 @@ http://localhost:15672/
   $ rabbitmqctl  set_permissions  -p  VHostPath  User  ConfP  WriteP  ReadP
   ```
 
-  (2) 查看(指定hostpath)所有用户的权限信息
+  (2) 查看(指定hostpath)所有用户的权限信息 
 
   ```bash
   rabbitmqctl  list_permissions  [-p  VHostPath]
@@ -185,6 +185,184 @@ http://localhost:15672/
 
   ```bash
   rabbitmqctl  clear_permissions  [-p VHostPath]  User
+  ```
+
+#### 1.3.4 虚拟主机
+
+1. 创建虚拟主机
+
+```bash 
+ rabbitmqctl  add_vhost  vhostpath
+```
+
+2. 删除虚拟主机
+
+```bash
+rabbitmqctl delete_vhost vhostpath
+```
+
+3.列出所有虚拟主机
+
+```bash
+ rabbitmqctl list_vhosts
+```
+
+4.设置用户权限
+
+```bash
+ rabbitmqctl set_permissions [-pvhostpath] username regexp regexp regexp
+ rabbitmqctl  set_permissions  -p mq_test chensj  ConfP WriteP ReadP
+```
+
+5.清除用户权限
+
+```bash
+rabbitmqctl clear_permissions [-pvhostpath] username
+```
+
+6.列出虚拟主机上的所有权限
+
+```bash
+rabbitmqctl list_permissions [-pvhostpath]
+```
+
+7.列出用户权限
+
+```bash
+ rabbitmqctl list_user_permissionsusername
+```
+
+
+## 2、Linux 安装
+
+### 2.1 安装erlang
+
+[CentOS](https://github.com/rabbitmq/erlang-rpm)按照参考文档在`/etc/yum.repos.d`创建文件`rabbitmq_erlang.repo`，填入如下内容：
+
+* CentOS 7
+
+```bash
+[rabbitmq_erlang]
+name=rabbitmq_erlang
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[rabbitmq_erlang-source]
+name=rabbitmq_erlang-source
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+```
+
+* CentOS 6
+
+```bash
+[rabbitmq_erlang]
+name=rabbitmq_erlang
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/6/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[rabbitmq_erlang-source]
+name=rabbitmq_erlang-source
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/6/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+```
+
+接下来执行`erlang`安装命令
+
+```bash
+$ yum install erlang
+```
+
+### 2.2 安装RabbitMQ
+
+* 导入Package Cloud的GPG keys
+
+```bash
+＃导入将从2018年12月1日开始使用的新PackageCloud密钥（GMT） 
+rpm --import https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
+# import将于12月1日停止使用的旧PackageCloud密钥，2018（GMT） 
+rpm --import https://packagecloud.io/gpg.key
+```
+
+* 配置[Bintray Yum存储库](https://www.rabbitmq.com/install-rpm.html#bintray)
+
+  * [RabbitMQ签名密钥](https://www.rabbitmq.com/signatures.html)
+
+  ```bash
+  rpm --import https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+  ```
+
+  * `rabbitmq.repo`
+
+  ` CentOS 7`
+
+  ```bash
+  [bintray-rabbitmq-server]
+  name=bintray-rabbitmq-rpm
+  baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/7/
+  gpgcheck=0
+  repo_gpgcheck=0
+  enabled=1
+  ```
+
+  `CentOS6`
+
+  ```bash
+  [bintray-rabbitmq-server]
+  name=bintray-rabbitmq-rpm
+  baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/6/
+  gpgcheck=0
+  repo_gpgcheck=0
+  enabled=1
+  ```
+
+* 安装
+
+  ```bash
+  # GitHub
+  rpm --import https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+  # this example assumes the CentOS 7 version of the package
+  yum install rabbitmq-server-3.7.14-1.el7.noarch.rpm
+  
+  # Rabbit 官网
+  rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+  # this example assumes the CentOS 7 version of the package
+  yum install rabbitmq-server-3.7.14-1.el7.noarch.rpm
+  
+  
+  # 或者
+  
+  yum install rabbitmq-server
+  ```
+
+* 开机启动
+
+  ```
+  chkconfig rabbitmq-server on
   ```
 
   

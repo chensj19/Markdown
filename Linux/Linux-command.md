@@ -75,6 +75,11 @@
 * 卸载
   * `rpm -e --nodeps ` 加上上面查出来的结果
 
+### 1.3 安装
+
+* deb
+  * sudo dpkg -i package deb
+
 ## 2.CentOS修改默认启动顺序
 
 ```bash 
@@ -293,7 +298,243 @@ $ systemctl start sshd.service
 # 设置开机自动启动ssh服务
 $ systemctl enable sshd.service
 $ vim /etc/ssh/sshd_config
-$
-$
+将 下面几行全部释放开
+Port 22
+#AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+PasswordAuthentication yes
+# 上述操作既完成ssh的安装
 ```
+
+## 5、简版vsftpd安装
+
+### 一、安装并启动FTP服务
+
+1.查询是否系统已经自带了vsftpd ：rpm -q vsftpd
+
+2.使用 yum 安装vsftpd：yum -y install vsftpd (或者使用rpm安装vsftpd：rpm -ivh vsftpd-3.0.2-22.el7.x86_64)
+
+3.启动vsftpd服务：service vsftpd start  (设置开机启动：systemctl enable vsftpd.service)
+
+检查vsftpd是否开启：ps -e|grep vsftpd 或者 查看21端口是否被监听，netstat -an | grep 21
+
+可以使用netstat -ntpl | grep vsftpd命令查看到系统现在监听的vsftpd的端口为 21
+
+4.开启防火墙
+
+放开21端口：firewall-cmd --zone=public --add-port=21/tcp --permanent
+
+永久开放 ftp 服務：firewall-cmd --add-service=ftp --permanent (关闭ftp服务：firewall-cmd --remove-service=ftp --permanent)
+
+在不改变状态的条件下重新加载防火墙：firewall-cmd --reload
+
+可能用到的命令：
+
+systemctl start firewalld     启动防火墙服务
+
+firewall-cmd --add-service=ftp     暂时开放ftp服务
+
+firewall-cmd --add-service=ftp --permanent    永久开放ftp服務
+
+firewall-cmd --remove-service=ftp --permanent    永久关闭ftp服務
+
+systemctl restart firewalld    重启firewalld服务
+
+firewall-cmd --reload    重载配置文件
+
+firewall-cmd --query-service ftp    查看服务的启动状态
+
+firewall-cmd --list-all    显示防火墙应用列表
+
+firewall-cmd --add-port=8001/tcp    添加自定义的开放端口
+
+iptables -L -n | grep 21    查看设定是否生效
+
+firewall-cmd --state    检测防火墙状态
+
+firewall-cmd --permanent --list-port    查看端口列表
+
+### 二、配置 FTP 权限
+
+1、了解 VSFTP 配置
+
+vsftpd 的配置目录为 /etc/vsftpd，包含下列的配置文件：
+
+vsftpd.conf 为主要配置文件
+
+ftpusers 配置禁止访问 FTP 服务器的用户列表
+
+user_list 配置用户访问控制------这里的用户默认情况（即在/etc/vsftpd/vsftpd.conf中设置了userlist_deny=YES）下也不能访问FTP服务器 
+
+2、阻止匿名访问和切换根目录
+
+匿名访问和切换根目录都会给服务器带来安全风险，我们把这两个功能关闭。编辑 /etc/vsftpd/vsftpd.conf，找到下面两处配置并修改：
+
+禁用匿名用户  YES 改为NO anonymous_enable=NO
+
+禁止切换根目录 删除# chroot_local_user=YES
+
+编辑完成后保存配置，重新启动 FTP 服务 service vsftpd restart
+
+其它配置项说明：
+
+anonymous_enable=YES #允许匿名登陆 
+
+local_enable=YES #启动home目录 
+
+write_enable=YES #ftp写的权限 
+
+local_umask=022 
+
+dirmessage_enable=YES #连接打印的消息 
+
+connect_from_port_20=YES #20端口 
+
+xferlog_std_format=YES 
+
+idle_session_timeout=600 
+
+data_connection_timeout=300 
+
+accept_timeout=60 
+
+connect_timeout=60 
+
+ascii_upload_enable=YES #上传 
+
+ascii_download_enable=YES #下载 
+
+chroot_local_user=NO #是否限制用户在主目录活动 
+
+chroot_list_enable=YES #启动限制用户的列表 
+
+chroot_list_file=/etc/vsftpd/chroot_list #每行一个用户名 
+
+allow_writeable_chroot=YES #允许写 
+
+listen=NO 
+
+listen_ipv6=YES 
+
+pasv_min_port=50000 允许ftp工具访问的端口起止端口 
+
+pasv_max_port=60000 
+
+pam_service_name=vsftpd #配置虚拟用户需要的 
+
+userlist_enable=NO #配置yes之后，user_list的用户不能访问ftp 
+
+tcp_wrappers=YES 
+
+chroot_list 文件需要自己建,内容一行一个用户名字 
+
+anon_root=/data/ftp/public #修改匿名用户的访问路径
+
+3 创建 FTP 用户
+
+新建一个不能登录系统用户. 只用来登录ftp服务 ,这里如果没设置用户目录。默认是在home下：
+
+useradd ftpuser -s /sbin/nologin
+
+为ftpuser用户设置密码：passwd ftpuser
+
+可能用到：
+
+设置用户的主目录：usermod -d /data/ftp ftpuser
+
+彻底删除用户：#userdel -rf Fuser   //强制删除用户及相关目录文件 
+
+变更用户属性：#usermod -s /sbin/nologinftpuser (/bin/bash：可以登录shell，/bin/false：禁止登录shell )
+
+查看当前服务：#netstat -lntp
+
+## 6、设置固定IP
+
+动态ip网络配置可参考我的另一篇博文<http://www.cnblogs.com/albertrui/p/7811868.html>
+
+1、编辑/etc/sysconfig/network-scripts/ifcfg-ens33 ，
+
+​     使用的命令为 $>sudo  vi  /etc/sysconfig/network-scripts/ifcfg-ens33
+
+1.1 修改BOOTPROTO=static
+
+1.2 修改或添加IPADDR=192.168.6.120(这个根据自己的情况 而定，我的主机的ip是192.168.6.111，
+
+ 所以我的这个ip可以设置为192.168.6.（1~255之间的，但不能和宿主机的ip重复）)
+
+1.3 修改 或添加GATEWAY=192.168.63.1（这个是根据主机的默认网关一致的）
+
+1.4 修改 或添加ONBOOT="yes"
+
+1.5 修改 或添加DNS1=8.8.8.8,也可以多写几个依次为DNS2,DNS3，
+
+ 常用的多是114.114.114.114或者8.8.8.8或者8.8.4.4等
+
+## 7、CentOS 修改主机名
+
+### 7.1 CentOS  6.x
+
+```bash
+  # 查看当前的hostnmae
+[root@centos6 ~]$ hostname
+centos6.magedu.com
+# 编辑network文件修改hostname行（重启生效）
+[root@centos6 ~]$ vim /etc/sysconfig/network  
+# 检查修改
+[root@centos6 ~]$ cat /etc/sysconfig/network  
+NETWORKING=yes
+HOSTNAME=centos66.magedu.com
+ # 设置当前的hostname(立即生效）
+[root@centos6 ~]$ hostname centos66.magedu.com 
+ # 编辑hosts文件，给127.0.0.1添加hostname
+[root@centos6 ~]$ vim /etc/hosts
+# 检查
+[root@centos6 ~]$ cat /etc/hosts  
+127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4 centos66.magedu.com
+::1 localhost localhost.localdomain localhost6 localhost6.localdomain6
+```
+
+### 7.2 CentOS 7.x
+
+```bash
+# 使用这个命令会立即生效且重启也生效
+[root@centos7 ~]$ hostnamectl set-hostname centos77.magedu.com  
+# 查看下
+[root@centos7 ~]$ hostname                                               
+centos77.magedu.com
+# 编辑下hosts文件， 给127.0.0.1添加hostname
+[root@centos7 ~]$ vim /etc/hosts
+# 检查
+[root@centos7 ~]$ cat /etc/hosts                                         
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 centos77.magedu.com
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+```
+
+## 8、查看发行版本
+
+### 8.1 lsb_release -a
+
+  对于linux系统而已，有成百上千个发行版。对于发行版的版本号查看方法
+
+如以centos为例。输入**lsb_release -a**即可
+
+**该命令适用于所有的linux，包括Redhat、SuSE、Debian等发行版**
+
+[![如何查看linux系统版本 查看linux系统的位数](https://imgsa.baidu.com/exp/w=500/sign=1923bf0f2b381f309e198da999014c67/730e0cf3d7ca7bcb8d4a4a18bd096b63f624a8d0.jpg)](http://jingyan.baidu.com/album/215817f7e360bd1edb142362.html?picindex=1)
+
+### 8.2 cat /etc/xxx-release
+
+如果如上图，没有这个命令
+
+可以通过查看 cat /etc/xxx-release XX为发行版名称。如 **centos-release**
+
+[![如何查看linux系统版本 查看linux系统的位数](https://imgsa.baidu.com/exp/w=500/sign=e64698a3452309f7e76fad12420e0c39/11385343fbf2b2113a1f0879c98065380cd78ed0.jpg)](http://jingyan.baidu.com/album/215817f7e360bd1edb142362.html?picindex=2)
+
+### 8.3 cat /etc/issue
+
+也可以通过查看**/etc/issue**文件查看发行版版本号
+
+[![如何查看linux系统版本 查看linux系统的位数](https://imgsa.baidu.com/exp/w=500/sign=bf97a6108982b9013dadc333438da97e/10dfa9ec8a13632712bb4f04928fa0ec08fac7b7.jpg)](http://jingyan.baidu.com/album/215817f7e360bd1edb142362.html?picindex=3)
 
