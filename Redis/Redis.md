@@ -2,7 +2,7 @@
 
 # Redis
 
-## Redis 简介
+## 一、Redis 简介
 
 Redis 是完全开源免费的，遵守BSD协议，是一个高性能的key-value数据库。 
 Redis 与其他 key - value 缓存产品有以下三个特点： 
@@ -10,19 +10,19 @@ Redis支持数据的持久化，可以将内存中的数据保存在磁盘中，
 Redis不仅仅支持简单的key-value类型的数据，同时还提供list，set，zset，hash等数据结构的存储。 
 Redis支持数据的备份，即master-slave模式的数据备份。
 
-## Redis 优势
+## 二、Redis 优势
 
 性能极高 – Redis能读的速度是110000次/s,写的速度是81000次/s 。 
 丰富的数据类型 – Redis支持二进制案例的 Strings, Lists, Hashes, Sets 及 Ordered Sets 数据类型操作。 
 原子 – Redis的所有操作都是原子性的，同时Redis还支持对几个操作全并后的原子性执行。 
 丰富的特性 – Redis还支持 publish/subscribe, 通知, key 过期等等特性。
 
-##  安装redis
+##  三、安装redis
 
 > 参考:<http://www.runoob.com/redis/redis-install.html> 
 > 下载地址：<https://github.com/MSOpenTech/redis/releases>
 
-###  Windows安装
+###  3.1 Windows安装
 
 解压文件到E盘，并重命名为redis，运行dos，切换目录到redis下， 
 运行:`redis-server.exe redis.windows.conf `
@@ -35,49 +35,98 @@ Redis支持数据的备份，即master-slave模式的数据备份。
 
 ![](http://img.blog.csdn.net/20170819140633187?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcWF6d3N4cGNt/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-### Linux安装
+### 3.2 Linux安装
 
 下载地址：<http://redis.io/download>，下载最新文档版本。 
-本教程使用的最新文档版本为 2.8.17，下载并安装：
+本教程使用的最新文档版本为5.0.5，下载并安装：
 
 ```bash
-$ wget http://download.redis.io/releases/redis-2.8.17.tar.gz
-$ tar xzf redis-2.8.17.tar.gz
-$ cd redis-2.8.17
-$ make
+$ wget http://download.redis.io/releases/redis-5.0.5.tar.gz
+$ tar zxzf redis-5.0.5.tar.gz
+$ cd redis-5.0.5.tar.gz
+$ make install
 ```
 
-make完后 redis-2.8.17目录下会出现编译后的redis服务程序`redis-server`,还有用于测试的客户端程序`redis-cli`,
+#### 3.2.1 问题
 
-两个程序位于安装目录 src 目录下： 
-下面启动redis服务.
+##### 3.2.1 .1 cc：Command not found
 
 ```bash
-$ cd src
-$ ./redis-server
+make[1]: [persist-settings] Error 2 (ignored)
+    CC adlist.o
+/bin/sh: cc: command not found
+make[1]: *** [adlist.o] Error 127
+make[1]: Leaving directory `/opt/redis-5.0.5/src'
+make: *** [all] Error 2
 ```
 
-注意这种方式启动redis 使用的是默认配置。也可以通过启动参数告诉redis使用指定配置文件使用下面命令启动。
+机器未安装gcc编译器，解决方案：
 
 ```bash
-$ cd src
-$ ./redis-server redis.conf
+$ yum install gcc -y	
 ```
 
-redis.conf是一个默认的配置文件。我们可以根据需要使用自己的配置文件。 
-启动redis服务进程后，就可以使用测试客户端程序redis-cli和redis服务交互了。 比如：
+##### 3.2.1.2 jemalloc/jemalloc.h: No such file or directory
 
 ```bash
-$ cd src
-$ ./redis-cli
-redis> set foo bar
-OK
-redis> get foo"bar"
+[root@centos7 redis-5.0.5]# make && install
+cd src && make all
+make[1]: Entering directory `/opt/redis-5.0.5/src'
+    CC Makefile.dep
+make[1]: Leaving directory `/opt/redis-5.0.5/src'
+make[1]: Entering directory `/opt/redis-5.0.5/src'
+    CC adlist.o
+In file included from adlist.c:34:0:
+zmalloc.h:50:31: fatal error: jemalloc/jemalloc.h: No such file or directory
+ #include <jemalloc/jemalloc.h>
 ```
 
-##  配置redis
+>  Allocator  
+>
+>  Selecting a non-default memory allocator when building Redis is done by setting  
+>  the `MALLOC` environment variable. Redis is compiled and linked against libc  
+>  malloc by default, with the exception of jemalloc being the default on Linux  
+>  systems. This default was picked because jemalloc has proven to have fewer  
+>  fragmentation problems than libc malloc.  
+>
+>  To force compiling against libc malloc, use:  
+>
+>  % make MALLOC=libc  
+>
+>  To compile against jemalloc on Mac OS X systems, use:  
+>
+>  % make MALLOC=jemalloc
+
+关于分配器allocator， 如果有MALLOC  这个 环境变量， 会有用这个环境变量的 去建立Redis。而且libc 并不是默认的 分配器， 默认的是 jemalloc, 因为 jemalloc 被证明 有更少的 fragmentation problems 比libc。但是如果你又没有jemalloc 而只有 libc 当然 make 出错。 所以加这么一个参数
+
+```bash
+$ make MALLOC=libc install
+```
+
+上述命令执行完成后，会将
+
+redis-benchmark  redis-check-aof  redis-check-rdb  redis-cli  redis-sentinel  redis-server
+
+拷贝到/usr/local/bin目录下
+
+##  四、配置redis
+
+### 4.1 配置文件
 
 Redis 的配置文件位于 Redis 安装目录下，文件名为 redis.conf。
+
+主要修改bind、requirepass，前者是可以通过网络访问，后者是设置密码
+
+```bash
+# bind 127.0.0.1
+bind 0.0.0.0
+# requirepass foobar
+requirepass 123456
+# 守护进程 运行
+daemonize yes
+```
+
+### 4.2 命令行
 
 1. 通过CONFIG查看命令或设置配置项。
 
@@ -93,7 +142,7 @@ Redis 的配置文件位于 Redis 安装目录下，文件名为 redis.conf。
    修改**redis.conf** 或 使用**config set** 命令修改配置 
    ![这里写图片描述](http://img.blog.csdn.net/20170819140728524?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcWF6d3N4cGNt/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-## Redis的数据类型
+## 五、Redis的数据类型
 
 Redis支持五种数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
 
