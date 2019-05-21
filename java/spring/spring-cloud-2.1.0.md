@@ -4032,10 +4032,21 @@ OAuth2的认证流程如图所示，具体如下。
 
 （6）资源服务器确认令牌正确无误，向客户端释放资源。
 
-OAuth2 Provider 的角色被分为 Authorization Server（授权服务）和 Resource Service（资源服务），通常它们不在同一个服务中，可能一个 Authorization Service 对应多个 Resource Service。Spring OAuth2 需配合 Spring Security 一起使用，所有的请求由 Spring MVC 控制器处理，并经过一系列的Spring Security过滤器。
+### 11.1 如何使用Spring OAuth2
 
-在Spring Security过滤器链中有以下两个节点，这两个节点是向 Authorization Service 获取验证和授权的。
+ OAuth2在Spring Resources中的实现是Spring OAuth2。Spring OAuth2分为两个部分OAuth2 Provider 和OAuth2 Client
 
-- 授权节点：默认为 /oauth/authorize。
-- 获取Token节点：默认为 /oauth/token。
+#### 11.1.1 OAuth2 Provider
+
+​	`OAuth2 Provider`负责公开被OAuth2保护起来的资源。`OAuth2 Provider`需要配置代表用户的 0Auth2 客户端信息，被用户允许的客户端就可以访问被 0Auth2 保护的资源 `OAuth2 Provider`通过管理和验证 0Auth2 令牌来控制客户端是否有权限访问被其保护的资源。另外， `OAuth2 Provider`还必须为用户提供认证 API 接口。根据认证 API接口，用户提供账号和密码等信息，来确认客户端是否可以被 0Auth2 Provider 授权。这样做的好处就是第三方客户端不需要获取用户的账号和密码，通过授权的方式就可以访问被 0Auth2 保护起来的资源。 
+
+​	`OAuth2 Provider`的角色被分为`Authorization Service`(授权服务)和`Resource Service`(资源服务), 通常它们不在同一个服务中，可能一个`Authorization Service` 对应多个`Resource Service`. `Spring 0Auth2`需配合`Spring Security`一起使用，所有的请求由`Spring MVC`控制器处理，并经过一系列的`Spring Security`过滤器 
+
+​	在`Spring Security`过滤器链中有以下两个节点，这两个节点是向`Authorization Service`获取验证和授权的。 
+
+* 授权节点：默认为`/oauth/authorize`
+
+* 获取Token节点：默认为`/oauth/token` 
+
+
 
