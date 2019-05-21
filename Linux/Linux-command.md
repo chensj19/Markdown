@@ -456,28 +456,28 @@ useradd ftpuser -s /sbin/nologin
 
 1、编辑/etc/sysconfig/network-scripts/ifcfg-ens33 ，
 
-​     使用的命令为 $>sudo  vi  /etc/sysconfig/network-scripts/ifcfg-ens33
+​     使用的命令为 `$>sudo  vi  /etc/sysconfig/network-scripts/ifcfg-ens33`
 
-1.1 修改BOOTPROTO=static
+1.1 修改`BOOTPROTO=static`
 
-1.2 修改或添加IPADDR=192.168.6.120(这个根据自己的情况 而定，我的主机的ip是192.168.6.111，
+1.2 修改或添加`IPADDR=192.168.6.120`
 
- 所以我的这个ip可以设置为192.168.6.（1~255之间的，但不能和宿主机的ip重复）)
+(这个根据自己的情况 而定，我的主机的ip是192.168.6.111， 所以我的这个ip可以设置为192.168.6.（1~255之间的，但不能和宿主机的ip重复）)
 
-1.3 修改 或添加GATEWAY=192.168.63.1（这个是根据主机的默认网关一致的）
+1.3 修改 或添加`GATEWAY=192.168.6.1`（这个是根据主机的默认网关一致的）
 
-1.4 修改 或添加ONBOOT="yes"
+1.4 修改 或添加`ONBOOT="yes"`
 
-1.5 修改 或添加DNS1=8.8.8.8,也可以多写几个依次为DNS2,DNS3，
+1.5 修改 或添加`DNS1=8.8.8.8`,也可以多写几个依次为DNS2,DNS3，
 
- 常用的多是114.114.114.114或者8.8.8.8或者8.8.4.4等
+ 常用的多是`114.114.114.114`或者`8.8.8.8`或者`8.8.4.4`等
 
 ## 7、CentOS 修改主机名
 
 ### 7.1 CentOS  6.x
 
 ```bash
-  # 查看当前的hostnmae
+# 查看当前的hostnmae
 [root@centos6 ~]$ hostname
 centos6.magedu.com
 # 编辑network文件修改hostname行（重启生效）
@@ -538,3 +538,122 @@ centos77.magedu.com
 
 [![如何查看linux系统版本 查看linux系统的位数](https://imgsa.baidu.com/exp/w=500/sign=bf97a6108982b9013dadc333438da97e/10dfa9ec8a13632712bb4f04928fa0ec08fac7b7.jpg)](http://jingyan.baidu.com/album/215817f7e360bd1edb142362.html?picindex=3)
 
+## 9、firewall 常用操作
+
+### 9.1 firewalld的基本使用
+
+启动： ```systemctl start firewalld```
+
+查看状态：``` systemctl status firewalld ``` 
+
+停止： ``` systemctl disable firewalld``` 
+
+禁用： ``` systemctl stop firewalld``` 
+
+### 9.2 systemctl
+
+systemctl是CentOS7的服务管理工具中主要的工具，它融合之前service和chkconfig的功能于一体。
+
+启动一个服务：``` systemctl start firewalld.service``` 
+
+关闭一个服务：``` systemctlstop firewalld.service``` 
+
+重启一个服务：``` systemctlrestart firewalld.service``` 
+
+显示一个服务的状态：``` systemctlstatus firewalld.service``` 
+
+在开机时启用一个服务：``` systemctlenable firewalld.service``` 
+
+在开机时禁用一个服务：``` systemctldisable firewalld.service``` 
+
+查看服务是否开机启动：``` systemctlis-enabled firewalld.service``` 
+
+查看已启动的服务列表：``` systemctllist-unit-files|grep enabled``` 
+
+查看启动失败的服务列表：``` systemctl--failed``` 
+
+### 9.3 配置firewalld-cmd
+
+查看版本：```  firewall-cmd --version``` 
+
+查看帮助： ``` firewall-cmd --help``` 
+
+显示状态： ``` firewall-cmd --state``` 
+
+查看所有打开的端口：```  firewall-cmd--zone=public --list-ports``` 
+
+更新防火墙规则： ``` firewall-cmd --reload``` 
+
+查看区域信息: ```  firewall-cmd--get-active-zones``` 
+
+查看指定接口所属区域：```  firewall-cmd--get-zone-of-interface=eth0``` 
+
+拒绝所有包：``` firewall-cmd --panic-on``` 
+
+取消拒绝状态： ``` firewall-cmd --panic-off``` 
+
+查看是否拒绝： ``` firewall-cmd --query-panic``` 
+
+添加
+
+```bash
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+#（--permanent永久生效，没有此参数重启后失效）
+```
+
+重新载入
+```bash
+firewall-cmd --reload
+````
+
+查看
+
+```bash
+firewall-cmd --zone=public --query-port=80/tcp
+```
+
+删除
+
+```bash
+firewall-cmd --zone=public --remove-port=80/tcp --permanent
+```
+
+添加服务
+
+```bash
+firewall-cmd --zone=public --add-service=http --permanent
+```
+
+查看firewall是否运行,下面两个命令都可以
+
+```bash
+systemctl status firewalld.service
+
+firewall-cmd --state
+```
+
+查看当前开了哪些端口
+
+其实一个服务对应一个端口，每个服务对应/usr/lib/firewalld/services下面一个xml文件。
+
+```bash
+firewall-cmd --list-services
+```
+
+查看还有哪些服务可以打开
+
+```bash
+firewall-cmd --get-services
+```
+
+查看所有打开的端口
+
+```
+firewall-cmd --zone=public --list-ports
+```
+
+更新防火墙规则
+
+```bash
+firewall-cmd --reload
+```
