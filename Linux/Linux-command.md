@@ -657,3 +657,31 @@ firewall-cmd --zone=public --list-ports
 ```bash
 firewall-cmd --reload
 ```
+
+## 10、shell脚本问题
+
+### 10.1 ：bin/sh^M: bad interpreter: No such file or directory
+
+原因：.sh脚本在[windows](http://www.2cto.com/special/xtxz/)[系统](http://www.2cto.com/os/)下用记事本文件编写的。不同系统的编码格式引起的。
+
+解决方法：修改.sh文件格式
+
+   （1）使用vi工具
+
+​      vi test.sh
+
+​    （2）利用如下命令查看文件格式 
+
+​     :set ff 或 :set fileformat 
+
+​     可以看到如下信息 
+
+​     fileformat=[dos](http://www.2cto.com/os/dos/) 或 fileformat=unix 
+
+​     （3） 利用如下命令修改文件格式 
+
+​     :set ff=unix 或 :set fileformat=unix 
+
+​     :wq (存盘退出)
+
+注：其实，在windows下通过git bash可以直接编写unix格式.sh！
