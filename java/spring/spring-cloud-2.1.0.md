@@ -4038,7 +4038,7 @@ OAuth2的认证流程如图所示，具体如下。
 
 #### 11.1.1 OAuth2 Provider
 
-​	`OAuth2 Provider`负责公开被OAuth2保护起来的资源。`OAuth2 Provider`需要配置代表用户的 0Auth2 客户端信息，被用户允许的客户端就可以访问被 0Auth2 保护的资源 `OAuth2 Provider`通过管理和验证 0Auth2 令牌来控制客户端是否有权限访问被其保护的资源。另外， `OAuth2 Provider`还必须为用户提供认证 API 接口。根据认证 API接口，用户提供账号和密码等信息，来确认客户端是否可以被 0Auth2 Provider 授权。这样做的好处就是第三方客户端不需要获取用户的账号和密码，通过授权的方式就可以访问被 0Auth2 保护起来的资源。 
+​	`OAuth2 Provider`负责公开被OAuth2保护起来的资源。`OAuth2 Provider`需要配置代表用户的 OAuth2客户端信息，被用户允许的客户端就可以访问被OAuth2 保护的资源 `OAuth2 Provider`通过管理和验证OAuth2令牌来控制客户端是否有权限访问被其保护的资源。另外， `OAuth2 Provider`还必须为用户提供认证 API 接口。根据认证 API接口，用户提供账号和密码等信息，来确认客户端是否可以被 0Auth2 Provider 授权。这样做的好处就是第三方客户端不需要获取用户的账号和密码，通过授权的方式就可以访问被 0Auth2 保护起来的资源。 
 
 ​	`OAuth2 Provider`的角色被分为`Authorization Service`(授权服务)和`Resource Service`(资源服务), 通常它们不在同一个服务中，可能一个`Authorization Service` 对应多个`Resource Service`. `Spring 0Auth2`需配合`Spring Security`一起使用，所有的请求由`Spring MVC`控制器处理，并经过一系列的`Spring Security`过滤器 
 
@@ -4048,5 +4048,91 @@ OAuth2的认证流程如图所示，具体如下。
 
 * 获取Token节点：默认为`/oauth/token` 
 
+##### 1. `Authorization Server`
 
+​		授权服务，提供给通过客户端访问用户的令牌信息，包含客户端信息、授权类型、用户凭证、刷新令牌等。`Authorization Server`中需要配置客户端的详细信息和令牌服务的实现。
+
+在任何实现了`AuthorizationServerConfigurer`或者`AuthorizationServerConfigurerAdapter`接口的类上添加`@EnableAuthorizationServer`注解，开启Authorization Server的功能，这个类就会以Bean的形式注入Spring IoC容器中，需要实现接口中的三个配置：
+
+* ClientDetailsServiceConfigurer  配置客户端信息
+
+  * 客户端的配置信息，可以放在内存中，也可以放在数据库中，需要配置如下信息
+    * clientId：客户端ID，需要在Authorization Server唯一
+    * secret： 客户端的密码
+    * scope：客户端的域
+    * authorizedGrantTypes：认证类型
+    * authorities： 权限信息
+
+* AuthorizationServerEndpointsConfigurer  配置授权Token的节点和Token服务
+
+  * 在默认情况下，AuthorizationServerEndpointsConfigurer  配置开启了所有的验证类型，除了密码类型的验证，密码验证只有配置了authenticationManager才会开启
+
+  * AuthorizationServerEndpointsConfigurer  配置包含5个部分
+
+    * authenticationManager： 只有配置了这个选项，密码配置才会生效，大多数情况下都是密码验证，所以这个一般都会配置
+
+    * userDetailsService： 配置获取用户认证的信息，与Spring Cloud Security中实现的userDetailsService类似
+
+    * AuthorizationCodeServices： 配置密码验证服务
+
+    * implicitGrantService ：配置管理 implict 验证的状态
+
+    * tokenGranter：配置Token Granter
+
+    * 关于Token的管理策略的设置，目前之前有4种：
+
+      * InMemoryTokenStore： Token 存储在内存中
+
+      * JdbcTokenStore： Token 存储在数据库 。需要引入spring-jdbc 的依赖包，并配置数 
+
+        据源，以及初始化 Spring OAuth2 的数据库脚本 
+
+      * JwkTokenStore：采用JWT形式，这种形式没有做任何的存储，因为JWT本身包含了
+
+        用户验证的所有信息，不需要存储。采用这种形式需要引入spring-jwt 的依赖
+
+      * RedisTokenStore：采用Redis存储，需要spring-boot-strarter-data-redis的依赖
+
+* AuthorizationServerSecurityConfigurer 配置Token节点的安全策略
+
+  * 如果资源服务和授权服务是在同一个服务中，用默认的配置即可，不需要做其他任何的配置。但是如果资源服务和授权服务不在同一个服务中，则需要做一些额外配置。如果采用RemoteTokenServices（远程Token校验），资源服务器的每次请求所携带的Token都需要从授权服务做校验。这 需要配置`/oauth/check_token`校验节点的校验策略 
+
+
+##### 2.Resources Server
+
+  Resource Server(可以是授权服务器，也可以是其他的资源服务)提供了受OAuth2保护的资源，这些资源为API接口、Html页面、Js文件等。 
+  Spring OAuth2提供了实现保护功能的Spring Security认证过滤器。在加了@Configuration注解的配置类上加@EnableResourceServer注解，
+  开启Resource Server的功能，并使用ResourcesServerConfigurer 行配置（如有必要），需要配置以下的内容 
+
+  * tokenServices: 定义 Token Service 例如用ResourceServerTokenservices 类，配置 Token是如何编码和解码的。如果Resource Server Authorization Server在同一个工程上，则不需要配token Services,如果不在同一个程序就需要配置 也可以用Remote Token Services类，即Resource Server采用远程授权服务器进行Token解码，这时也不需要配置此选项，本章案例采用此方式。 
+  
+  * resourceld：配置资源 Id 
+
+ #### 11.1.2 OAuth2 Client
+
+ OAuth2 Client(客户端)用于访问被OAuth2保护起来的资源。客户端括要提供用于存储 用户的授权码和访问令牌的机制， 需要配置如下两个选项。
+
+* Protected Resource Configuration :受保护资源配置
+* Client Configuration : 客户端配置
+
+##### 1.Protected Resource Configuration
+
+使用OAuth2ProtectedResourceDetails类型的 Bean 来定义受保护的资源，受保护的资源具有以下属性：
+
+* Id：资源的Id，它在Spring 0Auth2协议中没有用到，用于客户端寻找资源，不需要 做配置，默认即可 
+* clientld: OAuth2 Client的Id，和之前OAuth2 Provider中配置的一一对应。 
+* clientSecret：客户端密码，和之前OAuth2 Provider 配置的一一对应。 
+* accessTokenUri：获取 Token API 节点。 
+* scope：客户端的域 
+* clientAuthenticationScheme 有两种客户端验证类型，分别为Http Basic和Form，默认为Http Basi
+* userAuthorizationUri ：如果用户需要授权访问资源，用户将被重定向到的认证Uri 
+
+##### 2.Cilent Configuration  
+
+对于OAuth2 Client的配置,可以使用@Enable0Auth2Client注解来简化配置，另外还需要配置以下两项。
+
+* 创建一个过滤器Bean(Bean的Id是`oauth2ClientContextFilter`), 用来存储当前请求和上下文。在请求期间，如果需要进行用户身份验证，则会被重定向到OAuth2的认证Url
+* 在Request域内创建AccessTokenRequest类型的Bean
+
+## 11.2 样例
 
