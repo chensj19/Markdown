@@ -100,7 +100,11 @@ zmalloc.h:50:31: fatal error: jemalloc/jemalloc.h: No such file or directory
 关于分配器allocator， 如果有MALLOC  这个 环境变量， 会有用这个环境变量的 去建立Redis。而且libc 并不是默认的 分配器， 默认的是 jemalloc, 因为 jemalloc 被证明 有更少的 fragmentation problems 比libc。但是如果你又没有jemalloc 而只有 libc 当然 make 出错。 所以加这么一个参数
 
 ```bash
-$ make MALLOC=libc install
+$ mkdir /usr/local/redis && \
+  mkdir /usr/local/redis/etc && \
+  make MALLOC=libc && \
+  make PREFIX=/usr/local/redis install && \
+  cp redis.conf /usr/local/redis/etc/
 ```
 
 上述命令执行完成后，会将
