@@ -4247,8 +4247,476 @@ DEFAULT CHARACTER SET = utf8;
 
 #### 11.1.4 字段说明
 
-## [spring-oauth-server 数据库表说明](http://andaily.com/spring-oauth-server/db_table_description.html)
-
-以下对[spring-oauth-server](http://git.oschina.net/shengzhao/spring-oauth-server)项目中的`oauth.ddl`文件(位于/others/database目录)中的表字及段进行说明, 内容包括字段说明与使用场合                         |
+[spring-oauth-server 数据库表说明](http://andaily.com/spring-oauth-server/db_table_description.html)        |
 
 ## 11.2 样例
+
+### 11.2.1 oauth2-eureka-server
+
+oauth2 注册中心，按照Eureka的注册中心一样配置
+
+* `pom.xml`
+
+```xml
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-eureka-server</artifactId>
+        </dependency>
+    </dependencies>
+```
+
+* ``application.yml``
+
+```yaml
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+  server:
+    # 服务端缓存刷新时间
+    response-cache-update-interval-ms: 30
+spring:
+  application:
+    name: eureka-server
+```
+
+* 启动类
+
+```java
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaServerApplication {
+    public static void main(String[] args){
+        SpringApplication.run(EurekaServerApplication.class,args);
+    }
+}
+```
+
+### 11.2.2 oauth2-auth-service
+
+* `pom.xml`
+
+```xml
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-oauth2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-eureka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+```
+
+* `application.yml`
+
+```yaml
+spring:
+  application:
+    name: service-auth
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.31.190:3306/oauth2?useSSL=false
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+server:
+  port: 5000
+#  context-path: /uaa
+security:
+  oauth2:
+    resource:
+      filter-order: 3
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+```
+
+* `SpringSecurityConfig`
+
+```java
+@Configurable
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    /**
+     * AuthenticationManagerBuilder 配置了
+     * 验证的用户信息源和密码加密的策略，并且向 IoC 容器注入了 AuthenticationManager
+     * 对象。这市要在 0Auth2 中配置，因为在 0Auth2 中配置了 AuthenticationManager,
+     * 密码验证才会开肩。在本例中，采用的是密码验证
+     * @param auth
+     * @throws Exception
+     */
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(new BCryptPasswordEncoder());
+    }
+
+    /**
+     * 配置了验证管理的Bean
+     * @return
+     * @throws Exception
+     */
+    @Override
+    @Bean
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
+    }
+
+    /**
+     * HtφSecurity中配置了所有的请求都需要安全验证
+     * @param http
+     * @throws Exception
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests().anyRequest().authenticated()
+                .and()
+                .csrf().disable();
+    }
+}
+```
+
+* `User`
+
+```java
+@Data
+@Entity
+@Table(name = "sec_user")
+public class User implements UserDetails, Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "username",nullable = false,unique = true)
+    private String username;
+    @Column
+    private String password;
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @JoinTable(name = "sec_user_role",
+        joinColumns = @JoinColumn(name = "user_id",referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id",referencedColumnName = "id")
+    )
+    private List<Role> authorities;
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+}
+```
+* `Role`
+
+```java
+@Data
+@Entity
+@Table(name = "sec_role")
+public class Role implements GrantedAuthority {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "role_name",nullable = false)
+    private String roleName;
+
+    @Override
+    public String getAuthority() {
+        return roleName;
+    }
+}
+```
+* `UserRepository`
+
+```java
+@Repository
+public interface UserRepository extends JpaRepository<User,Long> {
+
+    User findByUsername(String username);
+}
+```
+* `RoleRepository`
+
+```java
+@Repository
+public interface RoleRepository extends JpaRepository<Role,Long> {
+}
+```
+* `IUserService`
+
+```java
+public interface IUserService {
+}
+```
+* `UserServiceImpl`
+
+```java
+@Service
+public class UserServiceImpl implements IUserService, UserDetailsService {
+    @Autowired
+    private UserRepository userRepository;
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username);
+    }
+}
+```
+* `UserController`
+
+```java
+@RestController
+public class UserController {
+
+    @RequestMapping(value = "/current",method = RequestMethod.GET)
+    public Principal getUser(Principal principal){
+        return principal;
+    }
+}
+```
+* `Oauth2ServerApplication`
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+@EnableResourceServer
+public class Oauth2ServerApplication {
+
+    @Autowired
+    @Qualifier("dataSource")
+    private DataSource dataSource;
+
+    public static void main(String[] args) {
+        SpringApplication.run(Oauth2ServerApplication.class, args);
+    }
+
+    @Configurable
+    @EnableAuthorizationServer
+    protected class Oauth2ServerConfig extends AuthorizationServerConfigurerAdapter {
+
+
+        @Autowired
+        @Qualifier("authenticationManager")
+        private AuthenticationManager authenticationManager;
+
+        @Autowired
+        private UserDetailsService userDetailsService;
+
+        JdbcTokenStore tokenStore = new JdbcTokenStore(dataSource);
+
+        /**
+         * 用来配置令牌端点(Token Endpoint)的安全约束.
+         * @param security
+         * @throws Exception
+         */
+        @Override
+        public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+
+            security
+                    // r 配置了获取 Token 的策略
+                    .tokenKeyAccess("permitAll()")
+                    .checkTokenAccess("isAuthenticated()");
+        }
+
+        /**
+         * 用来配置客户端详情服务（ClientDetailsService），客户端详情信息在这里进行初始化，你能够把客户端详情信息写死在这里或者是通过数据库来存储调取详情信息。
+         * @param clients 客户端配置
+         * @throws Exception
+         */
+        @Override
+        public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+
+            clients
+                    // 客户端信息放置在内存中
+                    .inMemory()
+                    // 创建一个clientID为client_1的客户端
+                    .withClient("browser")
+                    //
+                    .secret("123456")
+                    // 配置了验证类型为refresh_token和password,
+                    .authorizedGrantTypes("refresh_token", "password")
+                    // 客户端域为ui
+                    .scopes("ui")
+                    .and()
+                    .withClient("service-hi")
+                    .secret("123456")
+                    .authorizedGrantTypes("client_credentials", "refresh_token", "password")
+                    .scopes("server");
+        }
+
+        /**
+         * 用来配置授权（authorization）以及令牌（token）的访问端点和令牌服务(token services)。
+         *
+         * @param endpoints
+         * @throws Exception
+         */
+        @Override
+        public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+            security // 允许表单认证
+                    .allowFormAuthenticationForClients()
+                    // r 配置了获取 Token 的策略
+                    .tokenKeyAccess("permitAll()")
+                    .checkTokenAccess("isAuthenticated()");
+        }
+    }
+}
+
+```
+
+#### 11.2.2.1 数据库数据
+
+```sql
+INSERT INTO `sec_user`(`id`, `password`, `username`) VALUES (1, '$2a$10$.SNN8OkzST5lTOa/rkjiY.oSqTNKLaJPZ9iMBoLGgdCugwBTThiqm', 'admin');
+INSERT INTO `sec_user`(`id`, `password`, `username`) VALUES (2, '$2a$10$.SNN8OkzST5lTOa/rkjiY.oSqTNKLaJPZ9iMBoLGgdCugwBTThiqm', 'chensj');
+INSERT INTO `sec_role`(`id`, `role_name`) VALUES (1, 'admin');
+INSERT INTO `sec_user_role`(`user_id`, `role_id`) VALUES (1, 1);
+INSERT INTO `sec_user_role`(`user_id`, `role_id`) VALUES (2, 1);
+```
+
+#### 11.2.2.2 测试代码：
+
+```bash
+curl service-hi:123456@localhost:5000/oauth/token -d grant_type=password -d username=admin -d password=123456
+```
+
+#### 11.2.2.3 测试结果
+
+```json
+{
+    "access_token": "b92d954b-0524-45cc-9ab7-c1fa621a42c1",
+    "token_type": "bearer",
+    "refresh_token": "b46ae546-7b6e-45a5-825b-4d44cf907006",
+    "expires_in": 38822,
+    "scope": "server"
+}
+```
+
+### 11.2.3 Resource Client
+
+#### 11.2.3.1 用户注册
+
+```bash
+curl -d "username=chen&password=123456" "localhost:8762/users/register"
+```
+
+结果：
+
+```json
+{"id":3,"username":"chen","password":"$2a$10$u9urHGn.sR2bYtbg1W5e7urvBN/8PHfA4qWz3JiXhYdUkKneXRdv6","authorities":null,"enabled":true,"accountNonExpired":true,"accountNonLocked":true,"credentialsNonExpired":true}
+```
+
+#### 11.2.3.1 获取token
+
+```bash
+curl service-hi:123456@localhost:5000/oauth/token -d grant_type=password -d username=chen -d password=123456
+```
+
+结果：
+
+```json
+{"access_token":"9bac9030-4576-4cc5-973a-8bf4fc703e80","token_type":"bearer","refresh_token":"5fbad183-083a-4f1b-9cdd-515b72be2edc","expires_in":43199,"scope":"server"}
+```
+
+通过 Curl 命令模拟请求，访问不需要权限点的接口“hi”， Curl 命令如下
+
+```bash
+curl -l -H "Authorization:Bearer 9bac9030-4576-4cc5-973a-8bf4fc703e80" -X GET "localhost:8762/hi"
+```
+
+结果：
+
+```
+hi , i'm from port:8762
+```
+
+通过Curl命令模拟请求，访问需要有“ROLE ADMIN ”权限点的 API 接口“/hello",Curl 命令如下：
+
+```bash
+curl -l -H "Authorization:Bearer 9bac9030-4576-4cc5-973a-8bf4fc703e80" -X GET "localhost:8762/hello"
+```
+
+由于当前用户不具有"ROLE_ADMIN"角色，所以返回结果如下：
+
+```json
+{"error":"access_denied","error_description":"不允许访问"}
+```
+
+添加角色：
+
+```sql
+INSERT INTO ’sec_role’ VALUES ('ROLE_ADMIN') ,(’ROLE_USER ’) ; 
+INSERT INTO ’sec_user_role’ VALUES (’3’,’1’);
+```
+
+再次验证：
+
+```bash
+curl -l -H "Authorization:Bearer 9bac9030-4576-4cc5-973a-8bf4fc703e80" -X GET "localhost:8762/hello"
+```
+
+结果：
+
+```json
+user has admin
+```
+
+> 需要重新获取一次token，才能够获取权限
+
+```bash
+curl -l -H "Authorization:Bearer 9bac9030-4576-4cc5-973a-8bf4fc703e80" -X GET "localhost:8762/getPrinciple"
+```
+
+获取授权信息：
+
+```json
+{"authorities":[{"authority":"ROLE_ADMIN"},{"authority":"ROLE_USER"}],"details":{"remoteAddress":"0:0:0:0:0:0:0:1","sessionId":null,"tokenValue":"9bac9030-4576-4cc5-973a-8bf4fc703e80","tokenType":"Bearer","decodedDetails":null},"authenticated":true,"userAuthentication":{"authorities":[{"authority":"ROLE_ADMIN"},{"authority":"ROLE_USER"}],"details":{"authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"details":{"remoteAddress":"127.0.0.1","sessionId":null,"tokenValue":"9bac9030-4576-4cc5-973a-8bf4fc703e80","tokenType":"Bearer","decodedDetails":null},"authenticated":true,"userAuthentication":{"authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"details":{"grant_type":"password","username":"chen"},"authenticated":true,"principal":{"id":3,"username":"chen","password":"$2a$10$u9urHGn.sR2bYtbg1W5e7urvBN/8PHfA4qWz3JiXhYdUkKneXRdv6","authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"enabled":true,"accountNonLocked":true,"credentialsNonExpired":true,"accountNonExpired":true},"credentials":null,"name":"chen"},"oauth2Request":{"clientId":"service-hi","scope":["server"],"requestParameters":{"grant_type":"password","username":"chen"},"resourceIds":[],"authorities":[],"approved":true,"refresh":false,"redirectUri":null,"responseTypes":[],"extensions":{},"grantType":"password","refreshTokenRequest":null},"credentials":"","principal":{"id":3,"username":"chen","password":"$2a$10$u9urHGn.sR2bYtbg1W5e7urvBN/8PHfA4qWz3JiXhYdUkKneXRdv6","authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"enabled":true,"accountNonLocked":true,"credentialsNonExpired":true,"accountNonExpired":true},"clientOnly":false,"name":"chen"},"authenticated":true,"principal":"chen","credentials":"N/A","name":"chen"},"credentials":"","principal":"chen","clientOnly":false,"oauth2Request":{"clientId":"service-hi","scope":[],"requestParameters":{},"resourceIds":[],"authorities":[],"approved":true,"refresh":false,"redirectUri":null,"responseTypes":[],"extensions":{},"grantType":null,"refreshTokenRequest":null},"name":"chen"}
+```
+
