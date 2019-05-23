@@ -156,7 +156,7 @@ systemctl  enable mysqld;
 ## 37.通过以下命令，进行远程访问的授权
 
 ```
-create user 'root'@'%' identified with mysql_native_password by 'root';
+create user 'root'@'%' identified with mysql_native_password by '123456';
 grant all privileges on *.* to 'root'@'%' with grant option;
 flush privileges;
 ```
