@@ -145,7 +145,7 @@ systemctl  enable mysqld;
 
 ![](https://img-blog.csdn.net/20180702092657412?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjI2NjYwNg==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
-## 35.通过 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'; 命令来修改密码
+## 35.通过 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456'; 命令来修改密码
 
 ![](https://img-blog.csdn.net/20180702095054657?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjI2NjYwNg==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
@@ -163,7 +163,7 @@ flush privileges;
 
 ![](https://img-blog.csdn.net/20180702112020394?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjI2NjYwNg==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
-## 38.通过 ALTER USER 'root'@'localhost' IDENTIFIED BY 'root' PASSWORD EXPIRE NEVER; 命令修改加密规则，MySql8.0 版本 和 5.0 的加密规则不一样，而现在的可视化工具只支持旧的加密方式。
+## 38.通过 ALTER USER 'root'@'localhost' IDENTIFIED BY '123456' PASSWORD EXPIRE NEVER; 命令修改加密规则，MySql8.0 版本 和 5.0 的加密规则不一样，而现在的可视化工具只支持旧的加密方式。
 
  ![](https://img-blog.csdn.net/20180702112250796?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjI2NjYwNg==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
