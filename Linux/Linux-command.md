@@ -668,20 +668,30 @@ firewall-cmd --reload
 
    （1）使用vi工具
 
-​      vi test.sh
+```bash
+vi test.sh
+```
 
 ​    （2）利用如下命令查看文件格式 
 
-​     :set ff 或 :set fileformat 
+```bash
+:set ff
+:set fileformat 
+```
 
 ​     可以看到如下信息 
 
-​     fileformat=[dos](http://www.2cto.com/os/dos/) 或 fileformat=unix 
+```bash
+fileformat=[dos]
+fileformat=unix
+```
 
 ​     （3） 利用如下命令修改文件格式 
 
-​     :set ff=unix 或 :set fileformat=unix 
-
-​     :wq (存盘退出)
+```bash
+:set ff=unix
+:set fileformat=unix 
+:wq 
+```
 
 注：其实，在windows下通过git bash可以直接编写unix格式.sh！
