@@ -1,4 +1,4 @@
-# Java分布式跟踪系统Zipkin
+# [Java分布式跟踪系统Zipkin](http://blog.mozhu.org/categories/zipkin/)
 
 # 一、初识Zipkin
 
@@ -120,3 +120,16 @@ java -jar zipkin.jar
 
 [![Zipkin Web UI](http://static.blog.mozhu.org/images/zipkin/1_1.png)](http://static.blog.mozhu.org/images/zipkin/1_1.png)
 
+# 二、Brave源码分析-Tracer和Span
+
+Brave是Java版的Zipkin客户端，它将收集的跟踪信息，以Span的形式上报给Zipkin系统。
+
+（Zipkin是基于Google的一篇论文，名为Dapper，Dapper在荷兰语里是“勇敢的”的意思，这也是Brave的命名的原因）
+
+Brave目前版本为4.9.1，兼容zipkin1和2的协议，github地址：<https://github.com/openzipkin/brave>
+
+我们一般不会手动编写Trace相关的代码，Brave提供了一些开箱即用的库，来帮助我们对某些特定的库类来进行追踪，比如servlet，springmvc，mysql，okhttp3，httpclient等，这些都可以在下面页面中找到：
+
+<https://github.com/openzipkin/brave/tree/master/instrumentation>
+
+我们先来看看一个简单的Demo来演示下Brave的基本使用，这对我们后续分析Brave的原理和其他类库的使用有很大帮助
