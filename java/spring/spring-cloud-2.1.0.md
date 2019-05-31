@@ -4720,3 +4720,200 @@ curl -l -H "Authorization:Bearer 9bac9030-4576-4cc5-973a-8bf4fc703e80" -X GET "l
 {"authorities":[{"authority":"ROLE_ADMIN"},{"authority":"ROLE_USER"}],"details":{"remoteAddress":"0:0:0:0:0:0:0:1","sessionId":null,"tokenValue":"9bac9030-4576-4cc5-973a-8bf4fc703e80","tokenType":"Bearer","decodedDetails":null},"authenticated":true,"userAuthentication":{"authorities":[{"authority":"ROLE_ADMIN"},{"authority":"ROLE_USER"}],"details":{"authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"details":{"remoteAddress":"127.0.0.1","sessionId":null,"tokenValue":"9bac9030-4576-4cc5-973a-8bf4fc703e80","tokenType":"Bearer","decodedDetails":null},"authenticated":true,"userAuthentication":{"authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"details":{"grant_type":"password","username":"chen"},"authenticated":true,"principal":{"id":3,"username":"chen","password":"$2a$10$u9urHGn.sR2bYtbg1W5e7urvBN/8PHfA4qWz3JiXhYdUkKneXRdv6","authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"enabled":true,"accountNonLocked":true,"credentialsNonExpired":true,"accountNonExpired":true},"credentials":null,"name":"chen"},"oauth2Request":{"clientId":"service-hi","scope":["server"],"requestParameters":{"grant_type":"password","username":"chen"},"resourceIds":[],"authorities":[],"approved":true,"refresh":false,"redirectUri":null,"responseTypes":[],"extensions":{},"grantType":"password","refreshTokenRequest":null},"credentials":"","principal":{"id":3,"username":"chen","password":"$2a$10$u9urHGn.sR2bYtbg1W5e7urvBN/8PHfA4qWz3JiXhYdUkKneXRdv6","authorities":[{"id":1,"roleName":"ROLE_ADMIN","authority":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER","authority":"ROLE_USER"}],"enabled":true,"accountNonLocked":true,"credentialsNonExpired":true,"accountNonExpired":true},"clientOnly":false,"name":"chen"},"authenticated":true,"principal":"chen","credentials":"N/A","name":"chen"},"credentials":"","principal":"chen","clientOnly":false,"oauth2Request":{"clientId":"service-hi","scope":[],"requestParameters":{},"resourceIds":[],"authorities":[],"approved":true,"refresh":false,"redirectUri":null,"responseTypes":[],"extensions":{},"grantType":null,"refreshTokenRequest":null},"name":"chen"}
 ```
 
+
+
+## 十二、Spring Cloud OAuth2 + JWT
+
+### 1、JWT
+
+#### 1.1 简介
+
+JSON Web Token (JWT)是一个开放标准(RFC 7519)，它定义了一种紧凑的且自包含的方式，用于作为JSON对象在各方之间安全地传输信息。该信息可以被验证和信任，因为它是数字签名的。
+
+JWT 的原理是，服务器认证以后，生成一个 JSON 对象，发回给用户，就像下面这样。
+
+> ```javascript
+> {
+>   "姓名": "张三",
+>   "角色": "管理员",
+>   "到期时间": "2018年7月1日0点0分"
+> }
+> ```
+
+以后，用户与服务端通信的时候，都要发回这个 JSON 对象。服务器完全只靠这个对象认定用户身份。为了防止用户篡改数据，服务器在生成这个对象的时候，会加上签名（详见后文）。
+
+服务器就不保存任何 session 数据了，也就是说，服务器变成无状态了，从而比较容易实现扩展。
+
+#### 1.2 结构
+
+实际的 JWT 大概就像下面这样。
+
+![img](https://www.wangbase.com/blogimg/asset/201807/bg2018072304.jpg)
+
+它是一个很长的字符串，中间用点（`.`）分隔成三个部分。注意，JWT 内部是没有换行的，这里只是为了便于展示，将它写成了几行。
+
+JWT 的三个部分依次如下。
+
+> - Header（头部）
+> - Payload（负载）
+> - Signature（签名）
+
+写成一行，就是下面的样子。
+
+> ```javascript
+> Header.Payload.Signature
+> ```
+
+![img](https://www.wangbase.com/blogimg/asset/201807/bg2018072303.jpg)
+
+下面依次介绍这三个部分。
+
+##### 1.2.1 Header
+
+Header 部分是一个 JSON 对象，描述 JWT 的元数据，通常是下面的样子。
+
+> ```javascript
+> {
+>   "alg": "HS256",
+>   "typ": "JWT"
+> }
+> ```
+
+上面代码中，`alg`属性表示签名的算法（algorithm），默认是 HMAC SHA256（写成 HS256）；`typ`属性表示这个令牌（token）的类型（type），JWT 令牌统一写为`JWT`。
+
+最后，将上面的 JSON 对象使用 Base64URL 算法（详见后文）转成字符串。
+
+##### 1.2.2 Payload
+
+Payload 部分也是一个 JSON 对象，用来存放实际需要传递的数据。JWT 规定了7个官方字段，供选用。
+
+> - iss (issuer)：签发人
+> - exp (expiration time)：过期时间
+> - sub (subject)：主题
+> - aud (audience)：受众
+> - nbf (Not Before)：生效时间
+> - iat (Issued At)：签发时间
+> - jti (JWT ID)：编号
+
+除了官方字段，你还可以在这个部分定义私有字段，下面就是一个例子。
+
+> ```javascript
+> {
+>   "sub": "1234567890",
+>   "name": "John Doe",
+>   "admin": true
+> }
+> ```
+
+注意，JWT 默认是不加密的，任何人都可以读到，所以不要把秘密信息放在这个部分。
+
+这个 JSON 对象也要使用 Base64URL 算法转成字符串。
+
+##### 1.2.3 Signature
+
+Signature 部分是对前两部分的签名，防止数据篡改。
+
+首先，需要指定一个密钥（secret）。这个密钥只有服务器才知道，不能泄露给用户。然后，使用 Header 里面指定的签名算法（默认是 HMAC SHA256），按照下面的公式产生签名。
+
+> ```javascript
+> HMACSHA256(
+>   base64UrlEncode(header) + "." +
+>   base64UrlEncode(payload),
+>   secret)
+> ```
+
+算出签名以后，把 Header、Payload、Signature 三个部分拼成一个字符串，每个部分之间用"点"（`.`）分隔，就可以返回给用户。
+
+##### 1.2.4 Base64URL
+
+前面提到，Header 和 Payload 串型化的算法是 Base64URL。这个算法跟 Base64 算法基本类似，但有一些小的不同。
+
+JWT 作为一个令牌（token），有些场合可能会放到 URL（比如 api.example.com/?token=xxx）。Base64 有三个字符`+`、`/`和`=`，在 URL 里面有特殊含义，所以要被替换掉：`=`被省略、`+`替换成`-`，`/`替换成`_` 。这就是 Base64URL 算法。
+
+#### 1.3 应用场景
+
+* 认证：这是JWT最常使用场景。一旦用户登录成功获取JWT后，后续每个请求必须携带该JWT。这个JWT包含了用户信息、权限点等信息，根据该JWT包含的信息，资源服务可以控制可访问资源的范围。因为JWT的开销很小，并且能够在不同域中使用，单点登录也是广泛使用JWT的场景
+* 信息交换：JWT是在各方之间安全传输信息的一种方式，JWT使用签名加密，安全性很高。另外，当使用Header和Payload计算签名时，还可以验证内容是否被篡改
+
+#### 1.4 使用JWT
+
+##### 1.4.1 请求流程
+
+![JWT常规使用](https://img-blog.csdn.net/20180730205615246?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MDI5NjI1NA==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+请求流程：
+
+1. 用户使用账号和面发出post请求；
+2. 服务器使用私钥创建一个jwt；
+3. 服务器返回这个jwt给浏览器；
+4. 浏览器将该jwt串在请求头中像服务器发送请求；
+5. 服务器验证该jwt；
+6. 返回响应的资源给浏览器。
+
+##### 1.4.2 使用场景
+
+身份认证在这种场景下，一旦用户完成了登陆，在接下来的每个请求中包含JWT，**可以用来验证用户身份以及对路由，服务和资源的访问权限进行验证。**由于它的开销非常小，可以轻松的在不同域名的系统中传递，所有目前在**单点登录（SSO）**中比较广泛的使用了该技术。 信息交换在通信的双方之间使用JWT对数据进行编码是一种非常安全的方式，**由于它的信息是经过签名的，可以确保发送者发送的信息是没有经过伪造的。**
+
+##### 1.4.3 优点
+
+1. 简洁(Compact): 可以通过URL，POST参数或者在HTTP header发送，因为数据量小，传输速度也很快 
+
+2. 自包含(Self-contained)：负载中包含了所有用户所需要的信息，避免了多次查询数据库 
+
+3. 因为Token是以JSON加密的形式保存在客户端的，所以JWT是跨语言的，原则上任何web形式都支持。 
+
+4. 不需要在服务端保存会话信息，特别适用于分布式微服务。
+
+### 2、使用案例
+
+| 服务名称          | 服务端口 | 服务说明                                          |
+| ----------------- | -------- | ------------------------------------------------- |
+| jwt-eureka-server | 9100     | 注册中心                                          |
+| auth-service      | 9200     | 授权，需要提供客户端信息和用户信息，成功后返回JWT |
+| user-service      | 9300     | 资源服务，必须认证后才可以访问                    |
+
+#### jks文件生成
+
+```bash
+keytool -genkeypair -alias chen-jwt -validity 3650 -keyalg RSA -dname "CN=JWT,OU=jtw,O=jtw,L=zurich,S=zurich,C=CH" -keypass chen123 -keystore chen-jwt.jks -storepass chen123
+```
+
+-alias： 别名
+
+-keypass,-storepass： 密码选项
+
+-validity：配置jks过期时间，单位：天
+
+#### jks文件私有
+
+获取公钥命令
+
+```bash
+keytool -list -rfc -keystore chen-jwt.jks|openssl x509 -inform pem -pubkey
+```
+
+然后需要输入密码,即可获取公钥：
+
+```bash
+$ keytool -list -rfc -keystore chen-jwt.jks|openssl x509 -inform pem -pubkey
+输入密钥库口令:  chen123
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhbI/tUL6SSJRpFKfqYRY
+zOapOqu4Z/RY5VyiX5qRamJbbVGb1YjdWSlKkFCrsMk3UXONcALUb6j84GVUR5xH
+r3GKxCDkGRsdhZtwFizdNrfTnt55aUrV8aA9z/tpAfMYghg2nKh/Dw2BJ162jxJ1
+NDWVxXicNnlwk+wm4Il/tw/hVOgJ6Txo3PGGvPA2wNw9/cWsE97RvLipv9/fgC7x
+sR1xYOFyxRqL6r6IOHGjVoSNBwp1FejpTyLYtuRuil2grMfqhYCI5/trJWU7yrWr
+V/pV7B+9qcmiV4bnOPchsjQ5ZPctrSRt63cUkwX1gIW9rrruw3d6D5cjUL5mS6E8
+YwIDAQAB
+-----END PUBLIC KEY-----
+```
+
+
+
+#### 用户注册
+
+```bash
+$ curl -d "username=admin&password=123456" "localhost:9300/user/register"
+{"id":1,"username":"admin","password":"$2a$10$Om6r/v.zPKjn7Myemt8Ty.yGMgy.8ah4.1lJ9SW736GW0Q3SN05AG","authorities":null,"enabled":true,"accountNonExpired":true,"credentialsNonExpired":true,"accountNonLocked":true}
+```
+
