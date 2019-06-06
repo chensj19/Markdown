@@ -695,3 +695,92 @@ fileformat=unix
 ```
 
 注：其实，在windows下通过git bash可以直接编写unix格式.sh！
+
+## 11、问题集合
+
+### 11.1 Transaction Check Error
+
+安装erlang的时候出现问题：
+
+```bash
+# yum install erlang-22.0.1-1.el7.x86_64
+Loaded plugins: fastestmirror
+Loading mirror speeds from cached hostfile
+ * base: centos.ustc.edu.cn
+ * epel: mirrors.tuna.tsinghua.edu.cn
+ * extras: centos.ustc.edu.cn
+ * updates: ap.stykers.moe
+Resolving Dependencies
+--> Running transaction check
+---> Package erlang.x86_64 0:22.0.1-1.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+==================================================================================================================================================================== Package                            Arch                               Version                                    Repository                                   Size
+====================================================================================================================================================================Installing:
+ erlang                             x86_64                             22.0.1-1.el7                               rabbitmq_erlang                              18 M
+
+Transaction Summary
+====================================================================================================================================================================Install  1 Package
+
+Total size: 18 M
+Installed size: 33 M
+Is this ok [y/d/N]: y
+Downloading packages:
+Running transaction check
+Running transaction test
+
+
+Transaction check error:
+  file /usr/lib64/erlang/bin/epmd from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/erl from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/erlc from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/escript from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/run_erl from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/to_erl from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/no_dot_erlang.boot from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/start from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/start.boot from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/start.script from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/start_clean.boot from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/start_erl from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/bin/start_sasl.boot from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/driver_int.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_driver.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_drv_nif.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_fixed_size_int_types.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_int_sizes_config.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_memory_trace_parser.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_nif.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_nif_api_funcs.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/lib/liberts.a from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/lib/liberts_r.a from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/ei.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/ei_connect.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/eicode.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/include/erl_interface.h from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/lib/libei.a from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/lib/libei_st.a from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/lib/liberl_interface.a from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/usr/lib/liberl_interface_st.a from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64  file /usr/lib64/erlang/releases/RELEASES from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/releases/RELEASES.src from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+  file /usr/lib64/erlang/releases/start_erl.data from install of erlang-22.0.1-1.el7.x86_64 conflicts with file from package erlang-erts-R16B-03.18.el7.x86_64
+
+Error Summary
+-------------
+```
+
+错误原因：
+
+本机之前安装了`erlang-erts-R16B-03.18.el7.x86_64`这个软件，并没有卸载干净，导致冲突
+
+解决方法：
+
+```bash
+# yum
+$ yum remove erlang-erts-R16B-03.18.el7.x86_64
+# rpm
+$ rpm -e erlang-erts-R16B-03.18.el7.x86_64
+```
+

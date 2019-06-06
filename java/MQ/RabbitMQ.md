@@ -22,9 +22,144 @@
 
 >  将RabbitMQ安装目录下sbin目录配置到环境变量中，方便后面使用
 
-### 1.3 配置
+## 2、Linux 安装
 
-#### 1.3.1 激活Plugin
+### 2.1 安装erlang
+
+[CentOS](https://github.com/rabbitmq/erlang-rpm)按照参考文档在`/etc/yum.repos.d`创建文件`rabbitmq_erlang.repo`，填入如下内容：
+
+* CentOS 7
+
+```bash
+[rabbitmq_erlang]
+name=rabbitmq_erlang
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[rabbitmq_erlang-source]
+name=rabbitmq_erlang-source
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+```
+
+* CentOS 6
+
+```bash
+[rabbitmq_erlang]
+name=rabbitmq_erlang
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/6/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[rabbitmq_erlang-source]
+name=rabbitmq_erlang-source
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/6/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+```
+
+接下来执行`erlang`安装命令
+
+```bash
+$ yum install erlang
+```
+
+### 2.2 安装RabbitMQ
+
+* 导入Package Cloud的GPG keys
+
+```bash
+＃导入将从2018年12月1日开始使用的新PackageCloud密钥（GMT） 
+rpm --import https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
+# import将于12月1日停止使用的旧PackageCloud密钥，2018（GMT） 
+rpm --import https://packagecloud.io/gpg.key
+```
+
+* 配置[Bintray Yum存储库](https://www.rabbitmq.com/install-rpm.html#bintray)
+
+  * [RabbitMQ签名密钥](https://www.rabbitmq.com/signatures.html)
+
+  ```bash
+  rpm --import https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+  ```
+
+  * `rabbitmq.repo`
+
+  ` CentOS 7`
+
+  ```bash
+  [bintray-rabbitmq-server]
+  name=bintray-rabbitmq-rpm
+  baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/7/
+  gpgcheck=0
+  repo_gpgcheck=0
+  enabled=1
+  ```
+
+  `CentOS6`
+
+  ```bash
+  [bintray-rabbitmq-server]
+  name=bintray-rabbitmq-rpm
+  baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/6/
+  gpgcheck=0
+  repo_gpgcheck=0
+  enabled=1
+  ```
+
+* 安装
+
+  ```bash
+  # GitHub
+  rpm --import https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+  # this example assumes the CentOS 7 version of the package
+  yum install rabbitmq-server-3.7.14-1.el7.noarch.rpm
+  
+  # Rabbit 官网
+  rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+  # this example assumes the CentOS 7 version of the package
+  yum install rabbitmq-server-3.7.14-1.el7.noarch.rpm
+  
+  
+  # 或者
+  
+  yum install rabbitmq-server
+  ```
+
+* 开机启动
+
+  ```bash
+  chkconfig rabbitmq-server on
+  ```
+
+
+## 3 配置
+
+### 3.1 plugins 激活
+
+#### windows
 
 使用RabbitMQ 管理插件，可以更好的可视化方式查看Rabbit MQ 服务器实例的状态。
 
@@ -43,7 +178,29 @@ The following plugins have been enabled:
   rabbitmq_web_dispatch
 ```
 
-#### 1.3.2 重启
+#### linux
+
+```bash
+$ rabbitmq-plugins enable rabbitmq_management
+Enabling plugins on node rabbit@centos7:
+rabbitmq_management
+The following plugins have been configured:
+  rabbitmq_management
+  rabbitmq_management_agent
+  rabbitmq_web_dispatch
+Applying plugin configuration to rabbit@centos7...
+The following plugins have been enabled:
+  rabbitmq_management
+  rabbitmq_management_agent
+  rabbitmq_web_dispatch
+
+set 3 plugins.
+Offline change; changes will take effect at broker restart.
+```
+
+### 3.2  重启
+
+#### windows
 
 > 需要管理员权限
 
@@ -51,7 +208,15 @@ The following plugins have been enabled:
 $ net stop RabbitMQ & net start RabbitMQ
 ```
 
-#### 1.3.3 创建用户，密码，绑定角色
+#### linux
+
+```bash
+$ systemctl restart rabbitmq-server
+```
+
+### 3.3 权限信息
+
+用户，密码，绑定角色
 
 使用rabbitmqctl控制台命令（位于D:\tools\RabbitMQ Server\rabbitmq_server-3.7.14\sbin>）来创建用户，密码，绑定权限等。
 
@@ -187,7 +352,7 @@ http://localhost:15672/
   rabbitmqctl  clear_permissions  [-p VHostPath]  User
   ```
 
-#### 1.3.4 虚拟主机
+### 3.4 虚拟主机
 
 1. 创建虚拟主机
 
@@ -232,137 +397,65 @@ rabbitmqctl list_permissions [-pvhostpath]
  rabbitmqctl list_user_permissionsusername
 ```
 
-
-## 2、Linux 安装
-
-### 2.1 安装erlang
-
-[CentOS](https://github.com/rabbitmq/erlang-rpm)按照参考文档在`/etc/yum.repos.d`创建文件`rabbitmq_erlang.repo`，填入如下内容：
-
-* CentOS 7
+### 3.5 防火墙
 
 ```bash
-[rabbitmq_erlang]
-name=rabbitmq_erlang
-baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/$basearch
-repo_gpgcheck=1
-gpgcheck=0
-enabled=1
-gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
-
-[rabbitmq_erlang-source]
-name=rabbitmq_erlang-source
-baseurl=https://packagecloud.io/rabbitmq/erlang/el/7/SRPMS
-repo_gpgcheck=1
-gpgcheck=0
-enabled=1
-gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
+[root@centos7 rabbitmq]# firewall-cmd --zone=public --add-port=15672/tcp --permanent
+success
+[root@centos7 rabbitmq]# firewall-cmd --zone=public --add-port=5672/tcp --permanent
+success
+[root@centos7 rabbitmq]# firewall-cmd --reload
+success
 ```
 
-* CentOS 6
+
+
+## 4、问题
+
+### 4.1 rabbitmqctl list_users 无结果，报错
 
 ```bash
-[rabbitmq_erlang]
-name=rabbitmq_erlang
-baseurl=https://packagecloud.io/rabbitmq/erlang/el/6/$basearch
-repo_gpgcheck=1
-gpgcheck=0
-enabled=1
-gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
+# rabbitmqctl list_users
+Error: unable to perform an operation on node 'rabbit@centos7'. Please see diagnostics information and suggestions below.
 
-[rabbitmq_erlang-source]
-name=rabbitmq_erlang-source
-baseurl=https://packagecloud.io/rabbitmq/erlang/el/6/SRPMS
-repo_gpgcheck=1
-gpgcheck=0
-enabled=1
-gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-metadata_expire=300
+Most common reasons for this are:
+
+ * Target node is unreachable (e.g. due to hostname resolution, TCP connection or firewall issues)
+ * CLI tool fails to authenticate with the server (e.g. due to CLI tool's Erlang cookie not matching that of the server)
+ * Target node is not running
+
+In addition to the diagnostics info below:
+
+ * See the CLI, clustering and networking guides on https://rabbitmq.com/documentation.html to learn more
+ * Consult server logs on node rabbit@centos7
+ * If target node is configured to use long node names, don't forget to use --longnames with CLI tools
+
+DIAGNOSTICS
+===========
+
+attempted to contact: [rabbit@centos7]
+
+rabbit@centos7:
+  * connected to epmd (port 4369) on centos7
+  * epmd reports node 'rabbit' uses port 25672 for inter-node and CLI tool traffic
+  * can't establish TCP connection to the target node, reason: timeout (timed out)
+  * suggestion: check if host 'centos7' resolves, is reachable and ports 25672, 4369 are not blocked by firewall
+
+Current node details:
+ * node name: 'rabbitmqcli-9479-rabbit@centos7'
+ * effective user's home directory: /var/lib/rabbitmq
+ * Erlang cookie hash: QFTLLiuyW687QJpboJ67lA==
 ```
 
-接下来执行`erlang`安装命令
+原因分析：
 
-```bash
-$ yum install erlang
+unable to perform an operation on node 'rabbit@centos7'. Please see diagnostics information and suggestions below
+
+本机hostname是centos7.node.web1，但是RabbitMQ中使用 的centos7，对于本机来说，是无法识别的，导致ping不通
+
+解决方法：
+
+```
+在/etc/hosts 中增加一个 centos7即可
 ```
 
-### 2.2 安装RabbitMQ
-
-* 导入Package Cloud的GPG keys
-
-```bash
-＃导入将从2018年12月1日开始使用的新PackageCloud密钥（GMT） 
-rpm --import https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
-# import将于12月1日停止使用的旧PackageCloud密钥，2018（GMT） 
-rpm --import https://packagecloud.io/gpg.key
-```
-
-* 配置[Bintray Yum存储库](https://www.rabbitmq.com/install-rpm.html#bintray)
-
-  * [RabbitMQ签名密钥](https://www.rabbitmq.com/signatures.html)
-
-  ```bash
-  rpm --import https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
-  ```
-
-  * `rabbitmq.repo`
-
-  ` CentOS 7`
-
-  ```bash
-  [bintray-rabbitmq-server]
-  name=bintray-rabbitmq-rpm
-  baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/7/
-  gpgcheck=0
-  repo_gpgcheck=0
-  enabled=1
-  ```
-
-  `CentOS6`
-
-  ```bash
-  [bintray-rabbitmq-server]
-  name=bintray-rabbitmq-rpm
-  baseurl=https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.7.x/el/6/
-  gpgcheck=0
-  repo_gpgcheck=0
-  enabled=1
-  ```
-
-* 安装
-
-  ```bash
-  # GitHub
-  rpm --import https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
-  # this example assumes the CentOS 7 version of the package
-  yum install rabbitmq-server-3.7.14-1.el7.noarch.rpm
-  
-  # Rabbit 官网
-  rpm --import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
-  # this example assumes the CentOS 7 version of the package
-  yum install rabbitmq-server-3.7.14-1.el7.noarch.rpm
-  
-  
-  # 或者
-  
-  yum install rabbitmq-server
-  ```
-
-* 开机启动
-
-  ```
-  chkconfig rabbitmq-server on
-  ```
-
-  
