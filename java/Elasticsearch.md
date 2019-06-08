@@ -106,6 +106,46 @@ ELK架构为数据分布式存储、可视化查询和日志解析创建了一�
 常见的增、删、改、查操作实现： 
 <http://blog.csdn.net/laoyang360/article/details/51931981>
 
+#### 端口
+
+> elasticsearch常用的端口为9200和9300
+
+##### 9200
+
+暴露RESTful接口端口号，ES节点与外部通讯使用
+
+使用：
+
+```
+http://192.168.31.96:9200/userindex/user/1
+```
+
+结果：
+
+```json
+{
+    "_index":"userindex",
+    "_type":"user",
+    "_id":"1",
+    "_version":1,
+    "found":true,
+    "_source":
+    {
+        "id":"1",
+        "username":"chensj",
+        "password":"123456",
+        "age":25,
+        "sex":0
+    }
+}
+```
+
+kibana就是使用这种方式来实现操作的
+
+##### 9300
+
+TCP协议端口号，ES集群之间通信的端口号，就是ES之间通讯的使用
+
 ### Elasticsearch应用场景
 
 1. 大型分布式日志分析系统ELK  elasticsearch(存储日志)+logstash(收集日志)+kibana(日志展示)
@@ -296,7 +336,7 @@ $ ./elasticsearch
 $ ./elasticsearch  -d
 ```
 
-## kibana可视化界面
+## kibana 环境搭建
 
 ### 简介
 
@@ -341,6 +381,14 @@ server.host: "192.168.31.96"
 elasticsearch.url: "http://192.168.31.96:9200"
 ```
 
+#### 防火墙
+
+```bash
+firewall-cmd --zone=public --add-port=5601/tcp --permanent
+firewall-cmd --zone=public --add-service=kibana --permanent
+firewall-cmd --reload
+```
+
 #### 启动
 
 ```bash
@@ -352,89 +400,171 @@ elasticsearch.url: "http://192.168.31.96:9200"
 
 ### 操作命令
 
-* **创建索引**
+#### **创建索引**
 
-  ```Elasticsearch
-  PUT /esindex
-  ```
+```Elasticsearch
+PUT /esindex
+```
 
-* **查询索引**
+#### **查询索引**
 
-  ```Elasticsearch
-  GET /esindex
-  ```
+```Elasticsearch
+GET /esindex
+```
 
-* **创建文档**
+#### **创建文档**
 
-  ```Elasticsearch
-  PUT /esindex/user/1 
-  {
-    "name":"chensj",
-    "age":30,
-    "sex":0
-  }
-  ```
+```Elasticsearch
+PUT /esindex/user/1 
+{
+  "name":"chensj",
+  "age":30,
+  "sex":0
+}
+```
 
-* **查询文档**
+#### **查询文档**
 
-  ```
-  GET /esindex/user/1
-  ```
+```
+GET /esindex/user/1
+```
 
-* 修改文档
+#### **修改文档**
 
-  ```
-  PUT /esindex/user/1 
-  {
-    "name":"chensj",
-    "age":32,
-    "sex":0
-  }
-  ```
+```
+PUT /esindex/user/1 
+{
+  "name":"chensj",
+  "age":32,
+  "sex":0
+}
+```
 
-  注意返回结果如下：
+注意返回结果如下：
 
-  ```json
-  {
-    "_index": "esindex",
-    "_type": "user",
-    "_id": "1",
-    "_version": 2, // 版本变化
-    "result": "updated",
-    "_shards": {
-      "total": 2,
-      "successful": 1,
-      "failed": 0
-    },
-    "_seq_no": 1,
-    "_primary_term": 1
-  }
-  ```
+```json
+{
+  "_index": "esindex",
+  "_type": "user",
+  "_id": "1",
+  "_version": 2, // 版本变化
+  "result": "updated",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 1,
+  "_primary_term": 1
+}
+```
 
-* **删除文档**
+#### **删除文档**
 
-  ```
-  DELETE /esindex/user/1
-  ```
+```
+DELETE /esindex/user/1
+```
 
-  返回结果
+返回结果
 
-  ```json
-  {
-    "_index": "esindex",
-    "_type": "user",
-    "_id": "1",
-    "_version": 3,
-    "result": "deleted",
-    "_shards": {
-      "total": 2,
-      "successful": 1,
-      "failed": 0
-    },
-    "_seq_no": 2,
-    "_primary_term": 1
-  }
-  ```
+```json
+{
+  "_index": "esindex",
+  "_type": "user",
+  "_id": "1",
+  "_version": 3,
+  "result": "deleted",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 2,
+  "_primary_term": 1
+}
+```
+
+#### **不传递ID**
+
+```
+POST /esindex/user/
+{
+  "name":"chensj",
+  "age":32,
+  "sex":0
+}
+```
+
+结果：
+
+```
+{
+  "_index": "esindex",
+  "_type": "user",
+  "_id": "2DXRN2sBevCrxE3YcxUV",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 0,
+  "_primary_term": 2
+}
+```
+
+> 会自动生成主键ID
+
+### 高级查询
+
+#### 根据id进行查询
+
+```
+GET /userindex/user/1
+```
+
+#### 查询所有的文档
+
+```
+GET /userindex/user/_search
+```
+
+#### 根据多个ID查询
+
+```
+GET /userindex/user/_mget
+{
+  "ids": ["1","2"]
+}
+```
+
+#### 条件查询
+
+```bash
+# 年龄32
+GET /userindex/user/_search?q=age:32
+# 区间查询
+GET /userindex/user/_search?q=age[20 TO 40]
+# 降序排列
+GET /userindex/user/_search?q=age[20 TO 40]&sort=age:desc
+# 分页
+GET /userindex/user/_search?q=age[20 TO 40]&sort=age:desc&from=0&size=2
+```
+
+### DSL语言查询与过滤
+
+#### 什么是DSL
+
+Elasticsearch中查询请求分为两种，一种简易版的查询，另一种是使用JSON完整的请求体，叫做结构化查询(DSL)
+
+由于DSL查询更为直观也更为简易，所以大多数请情况使用这种方式
+
+DSL查询是POST一个json，由于POST的请求是JSON格式的，所以存在很多灵活性，也存在很多形式
+
+#### 根据名称精确查询姓名
+
+
 
 ## Elasticsearch 乐观锁版本控制
 
@@ -458,12 +588,162 @@ Elasticsearch版本控制使用的是CAS无锁机制，乐观锁机制
 
 外部版本控制：为了保证`_version`与外部版本控制的数字一致，使用`version_type=external`检查当前的`version`值是否小于请求中的`version`的值
 
-
-
-
-
 ## Elasticsearch 底层实现原理
 
+### 1.spring boot 整合 Elasticsearch 
+
+工程地址：https://gitee.com/chensj881008/spring-boot-elasticsearch.git
+
+#### Postman测试
+
+##### 新增
+
+url：`localhost:8080/user/add`
+
+postman参数：
+
+```json
+{
+    "id": "1",
+    "username": "chensj",
+    "password": "123456",
+    "age": 25,
+    "sex": 0
+}
+```
+
+结果：
+
+```json
+{
+    "id": "1",
+    "username": "chensj",
+    "password": "123456",
+    "age": 25,
+    "sex": 0
+}
+```
+
+es查询结果
+
+```bash
+GET /userindex/user/1
+```
+
+```json
+{
+  "_index": "userindex",
+  "_type": "user",
+  "_id": "1",
+  "_version": 1,
+  "found": true,
+  "_source": {
+    "id": "1",
+    "username": "chensj",
+    "password": "123456",
+    "age": 25,
+    "sex": 0
+  }
+}
+```
+
+##### 查询
+
+url：`localhost:8080/user/query/1`
+
+postman参数：无
+
+结果；
+
+```json
+{
+    "id": "1",
+    "username": "chensj",
+    "password": "123456",
+    "age": 25,
+    "sex": 0
+}
+```
+
+无结果的时候则为如下结果：
+
+```json
+{
+    "timestamp": "2019-06-08T14:47:19.879+0000",
+    "status": 500,
+    "error": "Internal Server Error",
+    "message": "No value present",
+    "path": "/user/query/12"
+}
+```
+
+#### 报错：
+
+###### 1. None of the configured nodes are available
+
+` None of the configured nodes are available:[{#transport#-1}{alvwcygdRSCA-rpEeLO6vQ}{192.168.31.96}{192.168.31.96:9300}]`
+
+无配置集群节点
+
+解决方案：
+
+由于在application.yml中指定的是集群的名称，需要修改es的配置文件
+
+```yaml
+cluster.name: myes
+```
+
+保存重启es
+
+### 2. Elasticsearch  倒排索引
+
+在Elasticsearch全文检索底层采用的倒排索引，倒排索引比数据库中B-tree(数据库采用)查询效率更快。倒排索引就是对文档内容使用**关键词**进行分词，可以直接通过**关键词**直接定位到文档内容。
+
+关键词来源于词库，词库可以自己定义，或者采用第三方提供的比如IK，还可以在IK中增加自定义词语
+
+倒排索引详见[倒排索引.md](倒排索引.md)文件
+
+##### Elasticsearch  默认分词器使用
+
+url: `http://192.168.31.96:9200/_analyze`
+
+postman参数：
+
+```json
+{
+    "analyzer": "standard",
+    "text": "奥迪"
+}
+```
+
+结果：
+
+```json
+{
+    "tokens": [
+        {
+            "token": "奥",
+            "start_offset": 0,
+            "end_offset": 1,
+            "type": "<IDEOGRAPHIC>",
+            "position": 0
+        },
+        {
+            "token": "迪",
+            "start_offset": 1,
+            "end_offset": 2,
+            "type": "<IDEOGRAPHIC>",
+            "position": 1
+        }
+    ]
+}
+```
+
+> 不支持中文。。。。
+>
+> 中文使用会按照一个一个字来分词。。。
+>
+> 支持中文需要使用ik_smart分词器
 
 
 ## Elasticsearch Mapping映射
