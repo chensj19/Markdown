@@ -564,6 +564,115 @@ DSL查询是POST一个json，由于POST的请求是JSON格式的，所以存在�
 
 #### 根据名称精确查询姓名
 
+```dsl
+GET /userindex/user/_search
+{
+  "query": {
+    "term": {
+      "username": "admin"
+    }
+  }
+}
+```
+
+`term`是精确匹配查询，不会做分词器分析，文档中必须包含整个搜索的词汇才会查询到
+
+#### 根据名称模糊查询
+
+```dsl
+GET userindex/user/_search
+{
+  "query": {
+    "match": {
+      "car": "奥迪"
+    }
+  }
+}
+```
+
+> 备注
+>
+> **term**  :查询不会对字段进行分词查询，会采用精确匹配
+>
+> **match**:会对该字段使用分词器进行分词，进行分词查询
+
+#### 复合查询-分页排序
+
+```dsl
+GET userindex/user/_search
+{
+  "from": 0,
+  "size": 20, 
+  "sort": [
+    {
+      "age": {
+        "order": "desc"
+      }
+    }
+  ], 
+  "query": {
+    "match": {
+      "car": "奥迪"
+    }
+  }
+}
+```
+
+#### 过滤
+
+```dsl
+## age 大约25小于等于30
+GET userindex/user/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_all": {}
+        }
+      ],
+      "filter": {
+        "range": {
+          "age": {
+            "gt": 25,
+            "lte": 30
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### 复合查询：过滤器/区间/分页/显示字段
+
+```
+## age 大约25小于等于30,分页，显示username和password字段
+GET userindex/user/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_all": {}
+        }
+      ],
+      "filter": {
+        "range": {
+          "age": {
+            "gt": 25,
+            "lte": 30
+          }
+        }
+      }
+    }
+  },
+  "from": 0,
+  "size": 20,
+  "_source": ["username","password"]
+}
+```
+
 
 
 ## Elasticsearch 乐观锁版本控制
@@ -687,7 +796,7 @@ postman参数：无
 
 解决方案：
 
-由于在application.yml中指定的是集群的名称，需要修改es的配置文件
+由于在`application.yml`中指定的是集群的名称，需要修改es的配置文件
 
 ```yaml
 cluster.name: myes
@@ -745,20 +854,255 @@ postman参数：
 >
 > 支持中文需要使用ik_smart分词器
 
+## `Elasticsearch`索引分词器
 
-## Elasticsearch Mapping映射
+### 分词器安装
+
+1. 分词器下载地址：https://github.com/medcl/elasticsearch-analysis-ik
+
+> 备注
+>
+> 分词器使用es对应的版本的
+
+2. 将文件解压重命名为ik，然后上传到es安装目录下plugins文件夹
+
+3. 重启elasticsearch
+
+4. 分词使用
+   url: 'http://192.168.31.96:9200/_analyze'
+
+   postman:
+
+   ```json
+   {
+       "analyzer": "ik_smart",
+       "text": "奥迪A4L"
+   }
+   ```
+
+   结果：
+
+   ```json
+   {
+       "tokens": [
+           {
+               "token": "奥迪",
+               "start_offset": 0,
+               "end_offset": 2,
+               "type": "CN_WORD",
+               "position": 0
+           },
+           {
+               "token": "a4l",
+               "start_offset": 2,
+               "end_offset": 5,
+               "type": "LETTER",
+               "position": 1
+           }
+       ]
+   }
+   ```
+
+   
+
+### 添加热词
+
+1. 进入目录`/usr/local/elasticsearch-6.4.3/plugins/ik/config`下
+
+2. 创建文件夹custom文件
+
+   ```bash
+   mkdir custom
+   ```
+
+3. 在custom文件夹下创建文件new_word.dic文件
+
+   ```bash
+   vim custom/new_word.dic
+   ```
+
+4. 添加热词
+
+   ```
+   王者荣耀
+   王者农药
+   洪荒之力
+   一带一路
+   腾讯课堂
+   陈世杰
+   ```
+
+5. 修改IK配置文件`IKAnalyzer.cfg.xml`
+
+   ```bash
+   vim IKAnalyzer.cfg.xml
+   ```
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+   <properties>
+           <comment>IK Analyzer 扩展配置</comment>
+           <!--用户可以在这里配置自己的扩展字典 -->
+           <entry key="ext_dict">custom/new_word.dic</entry>
+            <!--用户可以在这里配置自己的扩展停止词字典-->
+           <entry key="ext_stopwords"></entry>
+           <!--用户可以在这里配置远程扩展字典 -->
+           <!-- <entry key="remote_ext_dict">words_location</entry> -->
+           <!--用户可以在这里配置远程扩展停止词字典-->
+           <!-- <entry key="remote_ext_stopwords">words_location</entry> -->
+   </properties>
+   ```
+
+6. 重启ES
+
+7. 测试
+
+   1. URL：`http://192.168.31.96:9200/_analyze`
+
+   2. postman参数
+
+      ```json
+      {
+          "analyzer": "ik_smart",
+          "text": "王者荣耀"
+      }
+      ```
+
+   3. 结果
+
+      ```json
+      {
+          "tokens": [
+              {
+                  "token": "王者荣耀",
+                  "start_offset": 0,
+                  "end_offset": 4,
+                  "type": "CN_WORD",
+                  "position": 0
+              }
+          ]
+      }
+      ```
+
+## `Elasticsearch` Mapping映射
+
+将Elasticsearch的核心概念与关系型数据库进行了一个对比，索引(index)相对于数据库，type相当于表，映射(Mapping)就相当于数据库表的表结构。在Elasticsearch中的Mapping用于定义一个文档，可以定义所包含的字段及字段类型、分词器及属性等等
+
+### 动态映射
+
+在关系型数据库中，需要先建立数据库，然后在数据库实例下创建表，然后在表中插入数据，而在Elasticsearch中不需要事先定义映射，文档写入的时候，文档字段自动识别类型，这种机制叫做动态映射
+
+### 静态映射
+
+在Elasticsearch中也可以事先定义好映射，包含文档的各个字段及其类型等，这种机制叫做静态映射
+
+### ES支持的类型
+
+#### 基本类型
+
+##### 字符串
+
+string，string包含text和keyword
+
+###### text
+
+该类型被用来索引长文本，在创建索引前会将这些文本进行分词，转化为词组合，建立索引；允许es来检索这些词，text不能用来**聚合**和**排序**
+
+###### keyword
+
+该类型不需要进行分词，可以用来检索过滤、排序和聚合，keyword类型只读，只能用自身来进行检索(不可用text分词后的模糊检索)
+
+> keyword 类型不能分词
+>
+> text类型可以分词查询
+
+##### 数值类型
+
+long、integer、short、byte、float、double
+
+数值类型默认映射为long
+
+##### 日期
+
+date
+
+##### 布尔类型
+
+boolean
+
+##### 二进制类型
+
+binary
+
+##### 数组类型
+
+Array datatype
+
+#### 复杂类型
+
+##### 地理位置类型(Geo datatype)
+
+* 地理坐标类型(Geo-point datatype):Geo-point 用于经纬度坐标
+* 地理形状类型(Geo-Shape datatype):Geo-Shape 用于类似于多边形的复杂形状
+
+##### 特定类型
+
+Pv4类型：ip 用于Ipv4地址
+
+and so on
+
+### 修改文档映射
+
+```dsl
+# 删除索引
+DELETE carindex
+# 创建索引
+PUT carindex
+# 设置类型
+POST /carindex/_mapping/car
+{
+  "car":{
+    "properties":{
+      "birthday":{
+        "type": "date"
+      },
+      "use_day":{
+        "type":"long"
+      },
+      "expire_day":{
+        "type":"integer"
+      },
+      "name":{
+        "type":"text",
+        "analyzer":"ik_smart"
+      },
+      "brand":{
+         "type":"keyword"
+      }
+    }
+  }
+}
+
+# 查看映射
+GET carindex/_mapping/car
+```
 
 
 
-## 深入Elasticsearch搜索查询
+### 全局映射类型
 
 
 
-## Elasticsearch 索引分词器
+### spring boot 整合查询
 
 
 
-## 使用Elasticsearch 分布式日志收集ELK
+### Elasticsearch 7.x移除type
+
+
+
+## 使用`Elasticsearch`分布式日志收集`ELK`
 
 
 
