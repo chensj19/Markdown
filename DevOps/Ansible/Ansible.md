@@ -181,6 +181,8 @@ $ vim /etc/ansible/hosts
 
 ## 七、Ansible常用模块
 
+
+
 ### **7.1、copy模块**
 
 从本地copy文件分发到目录主机路径 
