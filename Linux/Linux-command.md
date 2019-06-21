@@ -220,7 +220,7 @@ $ sed -i "s/#ascii_download_enable=YES/ascii_download_enable=YES/g" '/etc/vsftpd
 $ sed -i "s/#ftpd_banner=Welcome to blah FTP service./ftpd_banner=Welcome to FTP service./g" '/etc/vsftpd/vsftpd.conf'
 # guest_username=vsftpd 此处要和刚刚创建的用户名一致
 $ echo -e "use_localtime=YES\nlisten_port=21\nchroot_local_user=YES\nidle_session_timeout=300
-\ndata_connection_timeout=1\nguest_enable=YES\nguest_username=vsftpd
+\ndata_connection_timeout=1\nguest_enable=YES\nguest_username=ftpuser
 \nuser_config_dir=/etc/vsftpd/vconf\nvirtual_use_local_privs=YES
 \npasv_min_port=10060\npasv_max_port=10090
 \naccept_timeout=5\nconnect_timeout=1" >> /etc/vsftpd/vsftpd.conf
