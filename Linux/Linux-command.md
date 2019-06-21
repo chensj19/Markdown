@@ -152,9 +152,9 @@ $ systemctl enable vsftpd.service
 
 ```bash
 #用户目录为/home/wwwroot, 用户登录终端设为/bin/false(即使之不能登录系统)
-$ useradd vsftpd -d /home/wwwroot -s /bin/false 
+$ useradd vsftpd -d /home/vsftpd -s /bin/false 
 # 修改目录归属
-$ chown vsftpd:vsftpd /home/wwwroot -R
+$ chown vsftpd:vsftpd /home/vsftpd -R
 ```
 
 ### 6、建立虚拟用户个人Vsftp的配置文件和子账号FTP权限
@@ -163,32 +163,16 @@ $ chown vsftpd:vsftpd /home/wwwroot -R
 $ mkdir /etc/vsftpd/vconf
 $ cd /etc/vsftpd/vconf
 # 这里创建虚拟用户配置文件
-$ touch web1 
-# 创建目录，方便后面修改用户归属
-$ mkdir -p /home/wwwroot/web1/http/mydic
-# 设置FTP上传文件新增权限，最新的vsftpd要求对主目录不能有写的权限所以ftp为755，
-# 主目录下面的子目录再设置777权限  
-$ chmod -R 755 /home/wwwroot/web1/http
-$ chmod -R 777 /home/wwwroot/web1/http/mydic
-#编辑用户web1配置文件，其他的跟这个配置文件类似
-$ vi web1 
-#输入下面红色内容
-# 设置FTP账号根目录
-　local_root=/home/wwwroot/web1/http/　　
-　write_enable=YES
-  anon_world_readable_only=NO
-  anon_upload_enable=YES
-  anon_mkdir_write_enable=YES
-  anon_other_write_enable=YES
-#保存退出  
-$ :wq! 
 $ touch ftpuser
-$  mkdir -p /home/wwwroot/ftpuser
+$ mkdir -p /home/vsftpd/ftpuser
 $ touch readme.txt
 $ echo 'ftpuser home' > readme.txt 
 $ mkdir upload
-$ chmod -R 755 /home/wwwroot/ftpuser
-$ chmod -R 777 /home/wwwroot/ftpuser/*
+# 设置FTP上传文件新增权限，最新的vsftpd要求对主目录不能有写的权限所以ftp为755，
+# 主目录下面的子目录再设置777权限  
+$ chmod -R 755 /home/vsftpd/ftpuser
+$ chmod -R 777 /home/vsftpd/ftpuser/*
+# 编辑用户ftpuser配置文件，其他的跟这个配置文件类似
 $ vi ftpuser 
 # 设置FTP账号根目录
   local_root=/home/wwwroot/ftpuser/　　
@@ -197,7 +181,6 @@ $ vi ftpuser
   anon_upload_enable=YES
   anon_mkdir_write_enable=YES
   anon_other_write_enable=YES
-
 ```
 
 ### **7、配置vsftp服务器**
@@ -220,9 +203,9 @@ $ sed -i "s/#ascii_download_enable=YES/ascii_download_enable=YES/g" '/etc/vsftpd
 $ sed -i "s/#ftpd_banner=Welcome to blah FTP service./ftpd_banner=Welcome to FTP service./g" '/etc/vsftpd/vsftpd.conf'
 # guest_username=vsftpd 此处要和刚刚创建的用户名一致
 $ echo -e "use_localtime=YES\nlisten_port=21\nchroot_local_user=YES\nidle_session_timeout=300
-\ndata_connection_timeout=1\nguest_enable=YES\nguest_username=ftpuser
+\ndata_connection_timeout=1\nguest_enable=YES\nguest_username=vsftpd
 \nuser_config_dir=/etc/vsftpd/vconf\nvirtual_use_local_privs=YES
-\npasv_min_port=10060\npasv_max_port=10090
+\nallow_writeable_chroot=YES\npasv_min_port=10060\npasv_max_port=10090
 \naccept_timeout=5\nconnect_timeout=1" >> /etc/vsftpd/vsftpd.conf
 ```
 
@@ -287,6 +270,19 @@ $ systemctl restart vsftpd.service
 ```
 
 可通过 ` tail -f /var/log/secure` 指令，查看服务器安全日志，便于分析错误问题，设置操作效果一定要仔细.....
+
+### 11 firewall防火墙
+
+```bash
+[root@CENTOS7 vconf]# firewall-cmd --zone=public --add-port=21/tcp --permanent
+success
+[root@CENTOS7 vconf]# firewall-cmd --add-service=ftp --permanent
+success
+[root@CENTOS7 vconf]# firewall-cmd --reload
+success
+```
+
+
 
 ## 4.SSH
 
