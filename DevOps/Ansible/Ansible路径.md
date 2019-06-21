@@ -1958,3 +1958,269 @@ httpd-tools-2.4.6-89.el7.centos.x86_64
 > * 能否正常动作
 > * 动作后是否能保证对象节点不受影响
 
+```bash
+[root@centos7 ~]# ls -ltr /tmp
+total 4
+-rwxr-xr-x. 1 root root 71 Jun 21 08:59 hello.sh
+[root@centos7 ~]# /tmp/hello.sh 
+this is test, from ansible manager, 192.168.78.12
+```
+
+### 使用script模块到对象节点上执行本地脚本
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m script -a /tmp/hello.sh
+192.168.78.130 | SUCCESS => {
+    "changed": true, 
+    "rc": 0, 
+    "stderr": "Shared connection to 192.168.78.130 closed.\r\n", 
+    "stdout": "this is test, from ansible manager, 192.168.78.128\r\n", 
+    "stdout_lines": [
+        "this is test, from ansible manager, 192.168.78.128"
+    ]
+}
+```
+
+### 执行后确认
+
+```bash
+[root@centos7 ~]# /tmp/hello.sh 
+this is test, from ansible manager, 192.168.78.128
+[root@centos7 ~]# ssh 192.168.78.130 /tmp/hello.sh  -> 目标机上源文件未发生变化
+hello world
+test ansible copy force
+test ansible copy backup
+```
+
+## 11.模块：get_url/cron/synchronize
+
+> 知识点：cron模块用于管理对象节点cron任务 
+> 知识点：get_url模块类似于wget和curl的功能，可以进行下载以及webapi交互等操作 
+> 知识点：synchronize模块使用rsync用于控制节点和管理对象节点之间的内容同步操作。
+
+### cron
+
+> 事前对象节点cron信息确认
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m shell -a "crontab -l"
+192.168.78.130 | FAILED | rc=1 >>
+no crontab for rootnon-zero return code
+```
+
+#### 添加任务
+
+> 利用cron模块向对象节点添加一个叫做sayhellojob的一个无聊job，此job每2分钟说一次hello
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m cron -a 'name=hellojob minute=*/2 hour=* day=* month=* weekday=* job="echo hello `date` >> /tmp/crontab.log"'
+192.168.78.130 | SUCCESS => {
+    "changed": true, 
+    "envs": [], 
+    "jobs": [
+        "hellojob"
+    ]
+}
+```
+
+> 事后对象节点的crontab内容
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m shell -a "crontab -l"
+192.168.78.130 | SUCCESS | rc=0 >>
+#Ansible: hellojob
+*/2 * * * * echo hello `date` >> /tmp/crontab.log
+```
+
+> 事后输出log的确认
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m shell -a "cat /tmp/crontab.log"
+192.168.78.130 | SUCCESS | rc=0 >>
+hello Fri Jun 21 09:18:01 CST 2019
+hello Fri Jun 21 09:20:01 CST 2019
+```
+
+#### 删除任务
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m cron -a 'name=hellojob minute=*/2 hour=* day=* month=* weekday=* job="echo hello `date` >> /tmp/crontab.log" state=absent'
+192.168.78.130 | SUCCESS => {
+    "changed": true, 
+    "envs": [], 
+    "jobs": []
+}
+[root@centos7 ~]# ansible 192.168.78.130 -m shell -a "crontab -l"
+192.168.78.130 | SUCCESS | rc=0 >>
+```
+
+### get_url
+
+> 使用get_url下载baidu的index
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m get_url -a "url='http://www.baidu.com' dest=/tmp"
+192.168.78.130 | SUCCESS => {
+    "changed": true, 
+    "checksum_dest": null, 
+    "checksum_src": "52977040463a10a42a20b930336d2e8fb5eabf81", 
+    "dest": "/tmp/index.html", 
+    "gid": 0, 
+    "group": "root", 
+    "md5sum": "4881e6e81dbed6b9f1b3224b4ecca0a7", 
+    "mode": "0644", 
+    "msg": "OK (unknown bytes)", 
+    "owner": "root", 
+    "secontext": "unconfined_u:object_r:user_tmp_t:s0", 
+    "size": 153711, 
+    "src": "/tmp/tmpJxzNth", 
+    "state": "file", 
+    "status_code": 200, 
+    "uid": 0, 
+    "url": "http://www.baidu.com"
+}
+```
+
+> 内容确认
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m shell -a "ls -ltr /tmp"
+192.168.78.130 | SUCCESS | rc=0 >>
+total 176
+-rw-r--r--. 1 root   root       12 Jun 20 10:32 helloworld
+-rwxr-xr-x. 1 root   root       19 Jun 20 11:23 test.sh
+-rwxr-x---. 1 root   root       62 Jun 20 14:30 hello.sh.9123.2019-06-20@14:39:33~
+-rwxrwxrwx. 1 chensj chensj     94 Jun 20 14:39 hello.sh
+-rw-------. 1 root   root     1494 Jun 20 15:39 yum_save_tx.2019-06-20.15-39.bImwfH.yumtx
+drwx------. 2 root   root       65 Jun 21 09:19 ansible_PyhaIi
+-rw-r--r--. 1 root   root      105 Jun 21 09:22 crontab.log
+-rw-r--r--. 1 root   root   153711 Jun 21 09:25 index.html
+drwx------. 2 root   root       65 Jun 21 09:26 ansible_ocuuFq
+```
+
+### synchronize
+
+> 同步内容准备和确认
+
+#### 准备
+
+```bash
+[root@centos7 ~]# mkdir -p /tmp/tst-syn /tmp/tst-syn/src /tmp/tst-syn/target /tmp/tst-syn/target/bin
+[root@centos7 ~]# echo "hello" > /tmp/tst-syn/target/bin/hello
+[root@centos7 ~]# ssh 192.168.78.130 ls -l /opt
+total 48
+drwxr-xr-x. 2 root root    95 May 28 13:47 apollo
+-rw-r--r--. 1 root root 21509 May 27 13:11 apolloconfigdb.sql
+-rw-r--r--. 1 root root 17270 May 27 13:11 apolloportaldb.sql
+drwxr-xr-x. 3 root root    34 May 27 13:09 git
+drwxr-xr-x. 2 root root  4096 May 25 00:25 mysql
+drwxr-xr-x. 3 root root    51 May 25 00:36 redis
+drwxr-xr-x. 2 root root     6 May 27 15:00 zipkin
+```
+
+#### 操作
+
+> 将此目录结构完整同步到对象机器的/opt下
+
+```bash
+[root@centos7 ~]# ansible 192.168.78.130 -m synchronize -a "src=/tmp/tst-syn dest=/opt/dst-syn"
+192.168.78.130 | SUCCESS => {
+    "changed": true, 
+    "cmd": "/usr/bin/rsync --delay-updates -F --compress --archive --rsh=/usr/bin/ssh -S none -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null --out-format=<<CHANGED>>%i %n%L /tmp/tst-syn 192.168.78.130:/opt/dst-syn", 
+    "msg": "cd+++++++++ tst-syn/\ncd+++++++++ tst-syn/src/\ncd+++++++++ tst-syn/target/\ncd+++++++++ tst-syn/target/bin/\n<f+++++++++ tst-syn/target/bin/hello\n", 
+    "rc": 0, 
+    "stdout_lines": [
+        "cd+++++++++ tst-syn/", 
+        "cd+++++++++ tst-syn/src/", 
+        "cd+++++++++ tst-syn/target/", 
+        "cd+++++++++ tst-syn/target/bin/", 
+        "<f+++++++++ tst-syn/target/bin/hello"
+    ]
+}
+[root@centos7 ~]# ansible 192.168.78.130 -m shell -a "ls -ltr /opt/dst-syn"
+192.168.78.130 | SUCCESS | rc=0 >>
+total 0
+drwxr-xr-x. 4 root root 31 Jun 21 09:29 tst-syn
+```
+
+> 报错： 
+>
+> ansible 192.168.78.130 -m synchronize -a "src=/tmp/tst-syn dest=/opt/dst-syn"
+> 192.168.78.130 | FAILED! => {
+>     "changed": false, 
+>     "msg": "Failed to find required executable rsync in paths: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/sbin"
+> }
+>
+> 处理：
+>
+>  yum install -y rsync
+
+## 12. 模块：Docker
+
+> 知识点：ansible使用docker可以对其进行管理。基本接近docker-compose对docker的使用支持，非常接近。诸如从port的设定到volume_from都支持，但是需要docker-py0.3.0 以上的支持。
+
+### 准备
+
+> 需要使用docker的module的管理对象节点需要满足如下前提
+
+| Package       | 所需版本    |
+| ------------- | ----------- |
+| python        | 2.6 以上    |
+| docker-py     | 0.3.0 以上  |
+| docker server | 0.10.0 以上 |
+
+### 安装docker-py
+
+> 一般python等基本上无需意识，一般安装了docker-py本模块就能支持。
+
+```bash
+[root@centos7 ~]# yum -y install epel-release
+[root@centos7 ~]# yum install -y python-pip
+[root@centos7 ~]# pip -V
+	pip 8.1.2 from /usr/lib/python2.7/site-packages (python 2.7)
+
+```
+
+## 13. playbook
+
+### 常规使用
+
+#### 准备
+
+```yaml
+- hosts: 192.168.78.130
+  tasks:
+    - name:  say hello task
+      shell: echo hello world `date` by `hostname` >/tmp/hello.log
+
+```
+
+#### 运行
+
+```bash
+[root@centos7 playbook]# ansible-playbook hello.playbook
+```
+
+### 指定目录
+
+```bash
+[root@centos7 playbook]# ansible-playbook /opt/playbook/hello.playbook
+```
+
+### 指定目录与主机
+
+#### playbook
+
+```yaml
+- hosts: "{{host}}"
+  tasks:
+    - name:  say hello task
+      shell: echo hello world `date` by `hostname` >/tmp/hello.log
+```
+
+#### 运行
+
+```bash
+[root@centos7 playbook]# ansible-playbook /opt/playbook/hello.playbook -e "host=192.168.78.130"
+```
+
