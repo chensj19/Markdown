@@ -780,3 +780,31 @@ $ yum remove erlang-erts-R16B-03.18.el7.x86_64
 $ rpm -e erlang-erts-R16B-03.18.el7.x86_64
 ```
 
+## 12、Centos7创建用户并授予sudo权限
+
+1. 创建用户： 
+   #adduser username
+
+2. 设置密码： 
+   #passwd username 
+   回车，顺序录入新密码及确认密码
+   授权sudo权限，需要修改sudoers文件。 
+
+3.  首先找到文件位置，示例中文件在/etc/sudoers位置。 
+   whereis sudoers
+
+4. 强调内容 修改文件权限，一般文件默认为只读。 
+   ls -l /etc/sudoers 查看文件权限 
+   chmod -v u+w /etc/sudoers 修改文件权限为可编辑
+
+5. 修改文件，在如下位置增加一行，保存退出。 
+   vim /etc/sudoers 进入文件编辑器 
+   文件内容改变如下： 
+   root ALL=(ALL) ALL 已有行 
+   username ALL=(ALL) ALL 新增行
+
+6. 记得将文件权限还原回只读。 
+   ls -l /etc/sudoers 查看文件权限 
+
+   chmod -v u-w /etc/sudoers 修改文件权限为只读
+
