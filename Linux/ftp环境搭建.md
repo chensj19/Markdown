@@ -156,7 +156,7 @@ $ touch /etc/vsftpd/virtusers
 ```bash
 # 编辑虚拟用户名单文件 
 $ vi /etc/vsftpd/virtusers
-ftpuser
+web1
 123456
 #保存退出
 $ :wq! 
@@ -175,7 +175,7 @@ $ chmod 600 /etc/vsftpd/virtusers.db
 修改前先备份 
 
 ```bash
-$ cp /etc/pam.d/vsftpd /etc/pam.d/vsftpd.bak
+$ cp /etc/pam.d/vsftpd /etc/pam.d/vsftpdbak
 $ vi /etc/pam.d/vsftpd #先注释到vsftpd所有配置，加入下面红色部分
 
 auth    sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/virtusers
