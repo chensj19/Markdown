@@ -301,4 +301,3 @@ vi /etc/rc.local
 ```bash
 chmod 755 rc.local
 ```
-
