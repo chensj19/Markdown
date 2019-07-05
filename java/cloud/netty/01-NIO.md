@@ -463,7 +463,7 @@ Buffer顾名思义：缓冲区，实际上是一个容器，一个连续数组�
 说完了FileChannel和Buffer, 大家应该对Buffer的用法比较了解了，这里使用SocketChannel来继续探讨NIO。NIO的强大功能部分来自于Channel的非阻塞特性，套接字的某些操作可能会无限期地阻塞。例如，对accept()方法的调用可能会因为等待一个客户端连接而阻塞；对read()方法的调用可能会因为没有数据可读而阻塞，直到连接的另一端传来新的数据。总的来说，创建/接收连接或读写数据等I/O调用，都可能无限期地阻塞等待，直到底层的网络实现发生了什么。慢速的，有损耗的网络，或仅仅是简单的网络故障都可能导致任意时间的延迟。然而不幸的是，在调用一个方法之前无法知道其是否阻塞。NIO的channel抽象的一个重要特征就是可以通过配置它的阻塞行为，以实现非阻塞式的信道。
 
 ```java
-channel.configureBlocking(false)
+  channel.configureBlocking(false)
 ```
 
 在非阻塞式信道上调用一个方法总是会立即返回。这种调用的返回值指示了所请求的操作完成的程度。例如，在一个非阻塞式ServerSocketChannel上调用accept()方法，如果有连接请求来了，则返回客户端SocketChannel，否则返回null。
@@ -611,7 +611,7 @@ public class ServerConnect
         ServerSocketChannel ssChannel = (ServerSocketChannel)key.channel();
         SocketChannel sc = ssChannel.accept();
         sc.configureBlocking(false);
-        sc.register(key.selector(), SelectionKey.OP_READ,ByteBuffer.allocate·Direct(BUF_SIZE));
+        sc.register(key.selector(), SelectionKey.OP_READ,ByteBuffer.allocateDirect(BUF_SIZE));
     }
     public static void handleRead(SelectionKey key) throws IOException{
         SocketChannel sc = (SocketChannel)key.channel();
@@ -751,12 +751,7 @@ ssc.register(selector, SelectionKey.OP_ACCEPT);
 4. Write
 ```
 
-通道触发了一个事件意思是该事件已经就绪。所以，
-
-* `Connect`：某个channel成功连接到另一个服务器称为“连接就绪”
-* `Accept`：一个server socket channel准备好接收新进入的连接称为“接收就绪”
-* `Read`：一个有数据可读的通道可以说是“读就绪”
-* `Write`：等待写数据的通道可以说是“写就绪”
+通道触发了一个事件意思是该事件已经就绪。所以，某个channel成功连接到另一个服务器称为“连接就绪”。一个server socket channel准备好接收新进入的连接称为“接收就绪”。一个有数据可读的通道可以说是“读就绪”。等待写数据的通道可以说是“写就绪”。
 
 这四种事件用SelectionKey的四个常量来表示：
 
@@ -819,20 +814,12 @@ SelectionKey key = channel.register(selector, SelectionKey.OP_READ, theObject);
 下面是select()方法：
 
 - int select()
-
-  阻塞到至少有一个通道在你注册的事件上就绪了
-
 - int select(long timeout)
-
-  select(long timeout)和select()一样，除了最长会阻塞timeout毫秒(参数)
-
-  这个参数表示在通道准备就绪后或多或少会阻塞多少毫秒
-
 - int selectNow()
 
-  selectNow()不会阻塞，不管什么通道就绪都立刻返回
-
-  （译者注：此方法执行非阻塞的选择操作。如果自从前一次选择操作后，没有通道变成可选择的，则此方法直接返回零。）。
+select()阻塞到至少有一个通道在你注册的事件上就绪了。
+select(long timeout)和select()一样，除了最长会阻塞timeout毫秒(参数)。
+selectNow()不会阻塞，不管什么通道就绪都立刻返回（译者注：此方法执行非阻塞的选择操作。如果自从前一次选择操作后，没有通道变成可选择的，则此方法直接返回零。）。
 
 select()方法返回的int值表示有多少通道已经就绪。亦即，自上次调用select()方法后有多少通道变成就绪状态。如果调用select()方法，因为有一个通道变成就绪状态，返回了1，若再次调用select()方法，如果另一个通道就绪了，它会再次返回1。如果对第一个就绪的channel没有做任何操作，现在就有两个就绪的通道，但在每次select()方法调用之间，只有一个通道就绪了。
 
