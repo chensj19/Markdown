@@ -80,6 +80,115 @@
 * deb
   * sudo dpkg -i package deb
 
+### 1.4 拷贝 scp
+
+scp是secure copy的简写，用于在Linux下进行远程拷贝文件的命令，和它类似的命令有cp，不过cp只是在本机进行拷贝不能跨服务器，而且scp传输是加密的。可能会稍微影响一下速度。当你服务器硬盘变为只读 read only system时，用scp可以帮你把文件移出来。另外，scp还非常不占资源，不会提高多少系统负荷，在这一点上，rsync就远远不及它了。虽然 rsync比scp会快一点，但当小文件众多的情况下，rsync会导致硬盘I/O非常高，而scp基本不影响系统正常使用。
+
+#### **1.4.1．命令格式**
+
+scp [参数] [原路径] [目标路径]
+
+#### **1.4.2．命令功能**
+
+scp是 secure copy的缩写, scp是linux系统下基于ssh登陆进行安全的远程文件拷贝命令。linux的scp命令可以在linux服务器之间复制文件和目录。
+
+#### **1.4.3．命令参数**
+
+* -1  强制scp命令使用协议ssh1 
+* -2  强制scp命令使用协议ssh2 
+* -4  强制scp命令只使用IPv4寻址 
+* -6  强制scp命令只使用IPv6寻址 
+* -B  使用批处理模式（传输过程中不询问传输口令或短语） 
+* -C  允许压缩。（将-C标志传递给ssh，从而打开压缩功能） 
+* -p 保留原文件的修改时间，访问时间和访问权限。 
+* -q  不显示传输进度条。 
+* -r  递归复制整个目录。 
+* -v 详细方式显示输出。scp和ssh(1)会显示出整个过程的调试信息。这些信息用于调试连接，验证和配置问题。  
+* -c cipher  以cipher将数据传输进行加密，这个选项将直接传递给ssh。  
+* -F ssh_config  指定一个替代的ssh配置文件，此参数直接传递给ssh。 
+* -i identity_file  从指定文件中读取传输时使用的密钥文件，此参数直接传递给ssh。   
+* -l limit  限定用户所能使用的带宽，以Kbit/s为单位。    
+* -o ssh_option  如果习惯于使用ssh_config(5)中的参数传递方式，  
+* -P port  注意是大写的P, port是指定数据传输用到的端口号  
+* -S program  指定加密传输时所使用的程序。此程序必须能够理解ssh(1)的选项。
+
+#### **1.4.4．使用实例**
+
+scp命令的实际应用概述
+
+##### **1.4.4.1 从本地服务器复制到远程服务器：**
+
+1. 复制文件： 
+
+   **命令格式** 
+```bash
+scp local_file remote_username@remote_ip:remote_folder 
+```
+   或者 
+```bash
+scp local_file remote_username@remote_ip:remote_file 
+```
+   或者 
+```bash
+scp local_file remote_ip:remote_folder 
+```
+   或者 
+```bash
+scp local_file remote_ip:remote_file 
+```
+   第1,2个指定了用户名，命令执行后需要输入用户密码，第1个仅指定了远程的目录，文件名字不变，第2个指定了文件名 
+
+   第3,4个没有指定用户名，命令执行后需要输入用户名和密码，第3个仅指定了远程的目录，文件名字不变，第4个指定了文件名  
+
+2. 复制目录： 
+
+   **命令格式** 
+```bash
+scp -r local_folder remote_username@remote_ip:remote_folder 
+```
+   或者 
+```bash
+scp -r local_folder remote_ip:remote_folder 
+```
+   第1个指定了用户名，命令执行后需要输入用户密码； 
+
+   第2个没有指定用户名，命令执行后需要输入用户名和密码；
+
+##### **1.4.4.2 从远程服务器复制到本地服务器：**
+
+从远程复制到本地的scp命令与上面的命令雷同，只要将从本地复制到远程的命令后面2个参数互换顺序就行了。
+
+**实例1：从远处复制文件到本地目录**
+
+**命令：**
+```bash
+scp root@192.168.120.204:/opt/soft/nginx-0.5.38.tar.gz /opt/soft/
+```
+
+
+**实例2：从远处复制到本地**
+
+**命令：**
+```bash
+scp -r root@192.168.120.204:/opt/soft/mongodb /opt/soft/
+```
+
+
+**实例3：上传本地文件到远程机器指定目录**
+
+**命令：**
+```bash
+scp /opt/soft/nginx-0.5.38.tar.gz root@192.168.120.204:/opt/soft/scptest
+```
+
+**实例4：上传本地目录到远程机器指定目录**
+
+**命令：**
+```bash
+scp -r /opt/soft/mongodb root@192.168.120.204:/opt/soft/scptest
+```
+
+
 ## 2.CentOS修改默认启动顺序
 
 ```bash 
@@ -783,28 +892,59 @@ $ rpm -e erlang-erts-R16B-03.18.el7.x86_64
 ## 12、Centos7创建用户并授予sudo权限
 
 1. 创建用户： 
-   #adduser username
-
+```bash
+useradd username
+```
 2. 设置密码： 
-   #passwd username 
+
+```bash
+passwd username 
+```
    回车，顺序录入新密码及确认密码
    授权sudo权限，需要修改sudoers文件。 
 
 3.  首先找到文件位置，示例中文件在/etc/sudoers位置。 
-   whereis sudoers
+```bash
+whereis sudoers
+```
 
 4. 强调内容 修改文件权限，一般文件默认为只读。 
-   ls -l /etc/sudoers 查看文件权限 
-   chmod -v u+w /etc/sudoers 修改文件权限为可编辑
-
+```bash
+ls -l /etc/sudoers #查看文件权限 
+chmod -v u+w /etc/sudoers #修改文件权限为可编辑
+```
 5. 修改文件，在如下位置增加一行，保存退出。 
    vim /etc/sudoers 进入文件编辑器 
    文件内容改变如下： 
-   root ALL=(ALL) ALL 已有行 
-   username ALL=(ALL) ALL 新增行
-
+```bash
+root ALL=(ALL) ALL #已有行 
+username ALL=(ALL) ALL #新增行
+```
 6. 记得将文件权限还原回只读。 
-   ls -l /etc/sudoers 查看文件权限 
+```bash
+ls -l /etc/sudoers #查看文件权限 
+chmod -v u-w /etc/sudoers #修改文件权限为只读
+```
 
-   chmod -v u-w /etc/sudoers 修改文件权限为只读
+## 13、配置Java软连接
+
+### Centos
+
+```bash
+ alternatives --install /usr/bin/java java /opt/jdk1.8.0_181/bin/java 2
+ alternatives --config java
+ 2
+ alternatives --install /usr/bin/jar jar /opt/jdk1.8.0_181/bin/jar 2
+ alternatives --install /usr/bin/javac javac /opt/jdk1.8.0_181/bin/javac 2
+ alternatives --set jar /opt/jdk1.8.0_181/bin/jar
+ alternatives --set javac /opt/jdk1.8.0_181/bin/javac
+```
+
+### Ubuntu
+
+```bash
+sudo update-alternatives --install /usr/bin/java  java  /opt/jdk1.8.0_181/bin/java 300   
+sudo update-alternatives --install /usr/bin/javac  javac  /opt/jdk1.8.0_181/bin/javac 300 
+sudo update-alternatives --install /usr/bin/jar  jar  /opt/jdk1.8.0_181/bin/jar 300   
+```
 
