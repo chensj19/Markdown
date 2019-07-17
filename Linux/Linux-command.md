@@ -948,3 +948,5 @@ sudo update-alternatives --install /usr/bin/javac  javac  /opt/jdk1.8.0_181/bin/
 sudo update-alternatives --install /usr/bin/jar  jar  /opt/jdk1.8.0_181/bin/jar 300   
 ```
 
+
+
