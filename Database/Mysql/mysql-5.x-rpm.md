@@ -78,48 +78,25 @@
 
     通过 `alter user 'root'@'localhost' identified by '123456';` 命令来修改密码
 
-    ```
-    `alter user 'root'@'localhost' identified by '123456';
+    ```sql
+    alter user 'root'@'localhost' identified by '123456';
     ```
 
     通过 exit; 命令退出 MySQL，然后通过新密码再次登陆
 
     ```bash
-    mysql> exit
-    Bye
-    [root@centos7 ~]# mysql -uroot -p
-    Enter password: 
-    Welcome to the MySQL monitor.  Commands end with ; or \g.
-    Your MySQL connection id is 3
-    Server version: 5.7.26 MySQL Community Server (GPL)
-    
-    Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.
-    
-    Oracle is a registered trademark of Oracle Corporation and/or its
-    affiliates. Other names may be trademarks of their respective
-    owners.
-    
-    Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
-    
-    mysql> 
+    mysql -uroot -p
     ```
-
+    
     创建远程用户
-
+    
     ```bash
-    mysql> create user 'root'@'%'  IDENTIFIED BY '123456' ;
-    Query OK, 0 rows affected (0.01 sec)
-    
-    mysql> grant all on *.* to  'root'@'%' ;
-    Query OK, 0 rows affected (0.00 sec)
-    
-    mysql> grant all privileges  on *.* to  'root'@'%'  IDENTIFIED BY '123456' ;
-    Query OK, 0 rows affected, 1 warning (0.00 sec)
-    
-    mysql> flush privileges;
-    Query OK, 0 rows affected (0.00 sec)
+    create user 'root'@'%'  IDENTIFIED BY '123456' ;
+    grant all on *.* to  'root'@'%' ;
+    grant all privileges  on *.* to  'root'@'%'  IDENTIFIED BY '123456' ;
+    flush privileges;
     ```
-
+    
 12. 防火墙配置
 
     ```bash
