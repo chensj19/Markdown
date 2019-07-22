@@ -102,7 +102,6 @@ vim /etc/shadowsocks.json
 >
 > 推荐使用rc4-md5，这种方式，加密开销小些。
 >
-> 
 
 
 #####  单端口配置
@@ -143,18 +142,19 @@ WantedBy=multi-user.target
 
 执行以下命令启动 shadowsocks服务：
 
-```
+```bash
  systemctl enable shadowsocks
-  systemctl start shadowsocks
+ systemctl start shadowsocks
 ```
 
 检查 shadowsocks 服务是否已成功启动，可以执行以下命令查看服务的状态：
 
-```
+```bash
 systemctl status shadowsocks -l
 ```
 
-检查防火墙
+#### 检查防火墙
+
 安装无误后，若开启了防火墙，配置防火墙规则，开放你配置的端口：
 
 ```bash
