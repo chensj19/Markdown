@@ -163,7 +163,7 @@ systemctl status shadowsocks -l
  firewall-cmd --reload
 ```
 
-
+[参考文档](https://blog.csdn.net/weixin_38950807/article/details/93212017)
 
 ## ShadowSocks 客户端
 
