@@ -49,3 +49,45 @@ $ mvn dependency:sources
 $ mvn dependency:resolve -Dclassifier=javadoc
 ```
 
+## 多mirror切换
+
+我们知道 settings.xml 中可以使用变量，可以尝试使用变量解决。
+
+```xml
+<mirrors>
+  <mirror>
+    <id>aliyun</id>
+    <url>https://maven.aliyun.com/repository/public</url>
+	<mirrorOf>${aliyun}</mirrorOf>
+  </mirror>
+  <mirror>
+    <id>netease</id>
+    <url>http://mirrors.163.com/maven/repository/maven-public/</url>
+    <mirrorOf>${netease}</mirrorOf>
+  </mirror>
+   <mirror>
+    <id>default</id>
+    <url>http://192.168.0.100/nexus/repository/maven-public/</url>
+    <mirrorOf>central</mirrorOf>
+  </mirror>
+</mirrors>
+```
+
+我们知道，默认情况下配置多个mirror的情况下，只有第一个生效。那么我们可以将最后一个作为默认值，前面配置的使用环境变量动态切换。
+
+默认情况下，执行： mvn help:effective-settings 可以看到使用的是私服。
+
+如果希望使用阿里云镜像，如下执行：
+
+```
+mvn help-effective-settings -Daliyun=central
+```
+
+同样的道理，使用网易镜像，则执行：
+
+```
+mvn help:effective-settings -Dnetease=central
+```
+
+测试无误。
+
