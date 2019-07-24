@@ -1,5 +1,3 @@
-
-
 [TOC]
 
 # Docker
@@ -111,9 +109,7 @@ sudo service docker restart
 对于使用 `systemd`的系统，请在` /etc/docker/daemon.json`中写入如下内容（如果文件不存在请新建该文件）
 ```json
 {
-    "registry-mirrors": [
-    "https://registry.docker-cn.com"
-    ]
+  "registry-mirrors": ["https://registry.docker-cn.com","http://f1361db2.m.daocloud.io","https://0vtdrvzb.mirror.swr.myhuaweicloud.com"]
 }
 ```
 注意，一定要保证该文件符合 json 规范，否则 Docker 将不能启动。之后重新启动服务。
@@ -128,7 +124,9 @@ $ sudo systemctl restart docker
 Settings ，打开配置窗口后左侧导航菜单选择 Daemon 。在 Registry
 mirrors 一栏中填写加速器地址 https://registry.docker-cn.com ，之后点
 击 Apply 保存后 Docker 就会重启并应用配置的镜像地址了。
+
 ### 5.4 macOS
+
 对于使用 macOS 的用户，在任务栏点击 Docker for mac 应用图标 ->
 Perferences... -> Daemon -> Registry mirrors。在列表中填写加速器地址
 https://registry.docker-cn.com 。修改完成之后，点击 Apply &

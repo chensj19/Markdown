@@ -29,8 +29,7 @@ baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
 enabled=1
 gpgcheck=0
 repo_gpgcheck=0
-gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
-http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF                                                                    
 ```
 
@@ -235,19 +234,21 @@ systemctl enable kubelet && systemctl start kubelet
 **1.执行初始化操作**
 
 ```bash
-kubeadm init \
---apiserver-advertise-address=192.168.78.134 \
+kubeadm init 
+--apiserver-advertise-address=192.168.31.44 \
 --image-repository registry.aliyuncs.com/google_containers \
---kubernetes-version v1.15.0 \
+--kubernetes-version v1.15.1 \
 --service-cidr=10.1.0.0/16 \
---pod-network-cidr=10.2.0.0/16
-[init] Using Kubernetes version: v1.13.3
+--pod-network-cidr=10.2.0.0/16 \ 
+--ignore-preflight-errors=Swap
+[init] Using Kubernetes version: v1.15.1
 [preflight] Running pre-flight checks
-error execution phase preflight: [preflight] Some fatal errors occurred:
-[ERROR NumCPU]: the number of available CPUs 1 is less than the required 2
-[ERROR Swap]: running with swap on is not supported. Please disable swap
-[preflight] If you know what you are doing, you can make a check non-fatal with
-`--ignore-preflight-errors=...`
+	[WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Pleasefollow the guide at https://kubernetes.io/docs/setup/cri/
+	[WARNING Swap]: running with swap on is not supported. Please disable swap
+	[WARNING SystemVerification]: this Docker version is not on the list of validated versions: 19.03.0. Latest validated version: 18.09
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
 ```
 
 先忽略报错，我们来看一下，初始化选项的意义：
@@ -287,19 +288,19 @@ kubeadm init \
 [kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
 [kubelet-start] Activating the kubelet service
 [certs] Using certificateDir folder "/etc/kubernetes/pki"
+[certs] Generating "etcd/ca" certificate and key
+[certs] Generating "etcd/peer" certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [c7-k8s-master localhost] and IPs [192.168.31.44 127.0.0.1 ::1]
+[certs] Generating "apiserver-etcd-client" certificate and key
+[certs] Generating "etcd/server" certificate and key
+[certs] etcd/server serving cert is signed for DNS names [c7-k8s-master localhost] and IPs [192.168.31.44 127.0.0.1 ::1]
+[certs] Generating "etcd/healthcheck-client" certificate and key
 [certs] Generating "ca" certificate and key
 [certs] Generating "apiserver" certificate and key
-[certs] apiserver serving cert is signed for DNS names [c7-k8s-master kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.1.0.1 192.168.78.134]
+[certs] apiserver serving cert is signed for DNS names [c7-k8s-master kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.1.0.1 192.168.31.44]
 [certs] Generating "apiserver-kubelet-client" certificate and key
 [certs] Generating "front-proxy-ca" certificate and key
 [certs] Generating "front-proxy-client" certificate and key
-[certs] Generating "etcd/ca" certificate and key
-[certs] Generating "apiserver-etcd-client" certificate and key
-[certs] Generating "etcd/server" certificate and key
-[certs] etcd/server serving cert is signed for DNS names [c7-k8s-master localhost] and IPs [192.168.78.134 127.0.0.1 ::1]
-[certs] Generating "etcd/peer" certificate and key
-[certs] etcd/peer serving cert is signed for DNS names [c7-k8s-master localhost] and IPs [192.168.78.134 127.0.0.1 ::1]
-[certs] Generating "etcd/healthcheck-client" certificate and key
 [certs] Generating "sa" key and public key
 [kubeconfig] Using kubeconfig folder "/etc/kubernetes"
 [kubeconfig] Writing "admin.conf" kubeconfig file
@@ -311,14 +312,15 @@ kubeadm init \
 [control-plane] Creating static Pod manifest for "kube-controller-manager"
 [control-plane] Creating static Pod manifest for "kube-scheduler"
 [etcd] Creating static Pod manifest for local etcd in "/etc/kubernetes/manifests"
-[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests". This can take up to 4m0s
-[apiclient] All control plane components are healthy after 30.003615 seconds
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory "/etc/kubernetes/manifests".This can take up to 4m0s
+[kubelet-check] Initial timeout of 40s passed.
+[apiclient] All control plane components are healthy after 55.005248 seconds
 [upload-config] Storing the configuration used in ConfigMap "kubeadm-config" in the "kube-system" Namespace
 [kubelet] Creating a ConfigMap "kubelet-config-1.15" in namespace kube-system with the configuration for the kubelets in the cluster
 [upload-certs] Skipping phase. Please see --upload-certs
 [mark-control-plane] Marking the node c7-k8s-master as control-plane by adding the label "node-role.kubernetes.io/master=''"
 [mark-control-plane] Marking the node c7-k8s-master as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
-[bootstrap-token] Using token: m9b3kz.cm5gxbfo0x7yluun
+[bootstrap-token] Using token: 42d59z.ed4y84r2z4gjrqfe
 [bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
 [bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
 [bootstrap-token] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
@@ -363,8 +365,8 @@ Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
 
 Then you can join any number of worker nodes by running the following on each as root:
 
-kubeadm join 192.168.78.134:6443 --token m9b3kz.cm5gxbfo0x7yluun \
-    --discovery-token-ca-cert-hash sha256:4442cf197c54b0e3ff1b303bd3a908b60193a18af1d6cf464106c611bae11aad 
+kubeadm join 192.168.31.44:6443 --token 42d59z.ed4y84r2z4gjrqfe \
+    --discovery-token-ca-cert-hash sha256:25679fcaebcb797eb24c85a30a153a69022585c3b4392f124d1f22807a480fdb 
 ```
 
 请根据上面输出的要求配置kubectl命令来访问集群。
