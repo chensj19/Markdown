@@ -188,6 +188,13 @@ scp /opt/soft/nginx-0.5.38.tar.gz root@192.168.120.204:/opt/soft/scptest
 scp -r /opt/soft/mongodb root@192.168.120.204:/opt/soft/scptest
 ```
 
+### 1.5 杀进程
+
+```bash
+ps aux| grep 'redis' |grep -v 'grep' |awk '{print $2}'|xargs kill -9
+```
+
+所有redis的进程全部杀掉
 
 ## 2.CentOS修改默认启动顺序
 

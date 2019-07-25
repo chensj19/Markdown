@@ -103,7 +103,7 @@ zmalloc.h:50:31: fatal error: jemalloc/jemalloc.h: No such file or directory
 $ mkdir /usr/local/redis && \
   mkdir /usr/local/redis/etc && \
   make MALLOC=libc && \
-  make PREFIX=/usr/local/redis install && \
+  make PREFIX=/usr/local/redis-cluster install && \
   cp redis.conf /usr/local/redis/etc/
 ```
 
