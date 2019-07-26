@@ -79,6 +79,28 @@ group 中首字母大写，否则Eclipse无法识别
 
 description 是描述 ，必须是英文的，不能是中文的
 
+## gradle使用本地maven仓库
+
+指定环境变量GRADLE_USER_HOME到本地下载的maven仓库地址
+
+```
+GRADLE_USER_HOME=D:\devTools\repo
+```
+
+修改build.gradle
+
+```gradle
+// 指定使用仓库
+repositories {
+    mavenLocal()
+    maven { name "Alibaba" ; url "https://maven.aliyun.com/repository/public" }
+    maven { name "gradle-plugin" ; url "https://maven.aliyun.com/repository/gradle-plugin" }
+    mavenCentral() // 中央仓库
+}
+```
+
+这样就会先从本地maven仓库中获取，没有才会下载
+
 ## build.gradle
 
 ```gradle

@@ -727,19 +727,175 @@ nginx配置文件是由若干个部分组成，每一个部分都是通过如下
 | use                | 该指令用于指示使用什么样的连接方法。这个配置将会覆盖编译时的默认配置，如果配置该指令，那么需要 一个events的区段，通常不需要覆盖，除非是当编译时的默认值随着时间的推移产生错误时才需要被覆盖设置 |
 | worker_connections | 该指令配置一个个工作进程能够接受并发连接的最大数。这个连接包括客户连接和向上游服务器的连接，但并不限于此。这对于反向代理服务器尤为重要，为了达到这个并发性连接数量，需要在操作系统层面进行一些额外调整 |
 
- 
+## 6、nginx使用
 
- 
+### **6.1 nginx** **安装配置+清缓存模块安装**
+
+* 软件包下载
+
+```
+mkdir /opt/nginx/web1
+cd /opt/software
+wget http://nginx.org/download/nginx-1.16.0.tar.gz
+wget http://labs.frickle.com/files/ngx_cache_purge-2.3.tar.gz
+tar zxvf nginx-1.16.0.tar.gz
+tar zxvf ngx_cache_purge-2.3.tar.gz
+```
+
+* 编译安装
+
+```bash
+cd nginx-1.16.0
+
+./configure \
+--prefix=/opt/nginx/web1 \
+--with-http_stub_status_module \
+--with-http_ssl_module \
+--with-http_realip_module \
+--add-module=../ngx_cache_purge-2.3 \
+--with-pcre
+
+make && make install
+```
+
+* 内核参数优化
+
+```bash
+net.ipv4.netfilter.ip_conntrack_tcp_timeout_established = 1800
+net.ipv4.ip_conntrack_max = 16777216
+net.ipv4.netfilter.ip_conntrack_max = 16777216
+net.ipv4.tcp_max_syn_backlog = 65536
+net.core.netdev_max_backlog = 32768
+net.core.somaxconn = 32768
+net.core.wmem_default = 8388608
+net.core.rmem_default = 8388608
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_timestamps = 0
+net.ipv4.tcp_synack_retries = 2
+net.ipv4.tcp_syn_retries = 1
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_mem = 94500000 915000000 927000000
+net.ipv4.tcp_max_orphans = 3276800
+net.ipv4.ip_local_port_range = 1024 65535
+```
+
+* 系统连接数的优化
+
+  在/etc/security/limits.conf最后增加
+
+```bash
+* soft nofile 102400
+* hard nofile 102400
+* soft nproc 65535
+* hard nproc 65535
+```
+
+* 站点设置
+
+| 序号 | 域名         | 目录                   |
+| ---- | ------------ | ---------------------- |
+| 1    | www.chen.com | /www/html/www.chen.com |
+| 2    | bbs.chen.com | /www/html/bbs.chen.com |
+
+* 配置文件修改
+
+```bash
+user  nobody; # 运行 nginx 的所属组和所有者
+worker_processes  2; # 开启两个 nginx 工作进程,一般几个 CPU 核心就写几
+
+#error_log  logs/error.log;
+error_log  logs/error.log  notice; # 错误日志路径
+#error_log  logs/error.log  info;
+
+pid        logs/nginx.pid; #  pid 路径
+
+events {
+    worker_connections  1024; # 一个进程能同时处理 1024 个请求
+}
 
 
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
 
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
 
+    access_log  logs/access.log  main; # 默认访问日志路径
 
-  
+    sendfile        on;
+    #tcp_nopush     on;
 
+    #keepalive_timeout  0;
+    keepalive_timeout  65;  # keepalive 超市时间
 
+    #gzip  on;
+	# 开始配置一个域名,一个 server 配置段一般对应一个域名
+    server {
+		# 在本机所有 ip 上监听 80,也可以写为 192.168.78.138:80,这样的话,就只监听192.168.78.138上的 80 口
+        listen       80;
+        server_name  www.chen.com;  # 域名
+        root         /www/html/www.chen.com; # 站点根目录（程序目录）
+        index        index.html index.htm; # 索引文件
+        location / { # 可以有多个 location
+            root   /www/html/www.chen.com; # 站点根目录（程序目录）
+        }
+        # 定义错误页面,如果是 500 错误,则把站点根目录下的 50x.html 返回给用户
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root  /www/html/www.chen.com;
+        }
+    }
+    server {
+        listen       80;
+        server_name  bbs.chen.com;
+        root         /www/html/bbs.chen.com;
+        index        index.html index.htm;
+        location / {
+            root   /www/html/bbs.chen.com;
+        }
+        # redirect server error pages to the static page /50x.html
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root  /www/html/bbs.chen.com;
+        }
+    } 
+}
+```
 
- 
+* nginx 启动关闭
 
- 
+```bash
+/opt/nginx/web1/sbin/nginx  #启动
+/opt/nginx/web1/sbin/nginx  -t # 验证nginx配置文件的正确性
+/opt/nginx/web1/sbin/nginx  -s reload # 重载nginx
+/opt/nginx/web1/sbin/nginx  -s stop # 关闭nginx
+```
+
+* 测试
+
+```bash
+mkdir -p /www/html/bbs.chen.com
+mkdir -p /www/html/www.chen.com
+echo "bbs.chen.com" >> /www/html/bbs.chen.com/index.html
+echo "www.chen.com" >> /www/html/www.chen.com/index.html
+```
+
+* nginx 启动
+
+```
+/opt/nginx/web1/sbin/nginx
+```
+
+* 绑定hosts测试
+
+修改`C:\Windows\System32\drivers\etc\hosts` 
+
+```
+192.168.78.138 bbs.chen.com
+192.168.78.138 www.chen.com
+```
 
