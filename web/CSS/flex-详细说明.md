@@ -4,11 +4,26 @@
 
 对于某个元素只要声明了`display: flex;`，那么这个元素就成为了弹性容器，具有flex弹性布局的特性。
 
+```html
+<body>
+    <div class="flex-container"></div>
+</body>
+
+<style>
+    .flex-container {
+        /* 声明这个容器是弹性容器 
+        具有flex弹性布局的特性
+        */
+        display: flex;
+    }
+</style>
+```
+
 ![](https://ask.qcloudimg.com/http-save/1006489/akzmho8t10.jpeg?imageView2/2/w/1620)
 
 1. 每个弹性容器都有两根轴：**主轴和交叉轴**，两轴之间成90度关系。注意：**水平的不一定就是主轴。**
 2. 每根轴都有**起点和终点**，这对于元素的对齐非常重要。
-3. 弹性容器中的所有子元素称为<弹性元素>，**弹性元素永远沿主轴排列**。
+3. 弹性容器中的所有子元素称为**弹性元素**，**弹性元素永远沿主轴排列**。
 4. 弹性元素也可以通过`display:flex`设置为另一个弹性容器，形成嵌套关系。因此**一个元素既可以是弹性容器也可以是弹性元素**。
 
 弹性容器的两根轴非常重要，所有属性都是作用于轴的。下面从轴入手，将所有flex布局属性串起来理解。
@@ -19,30 +34,30 @@ flex布局是一种**一维布局**模型，一次只能处理一个维度（一
 
 也就是说，**flex布局大部分的属性都是作用于主轴的，在交叉轴上很多时候只能被动地变化**。
 
-### 1. 主轴的方向
+### 1. 主轴的方向 flex-direction
 
 我们可以在弹性容器上通过`flex-direction`修改主轴的方向。如果主轴方向修改了，那么：
 
 1. 交叉轴就会相应地旋转90度。
 2. 弹性元素的排列方式也会发生改变，因为**弹性元素永远沿主轴排列**。
 
-`flex-direction:row;`
+**`flex-direction:row;`**
 
 ![](https://ask.qcloudimg.com/http-save/1006489/qyuv0bo3h1.gif)
 
-`flex-direction:column`
+**`flex-direction:column`**
 
 ![](https://ask.qcloudimg.com/http-save/1006489/4u12kljsxv.gif)
 
-`flex-direction:row-reverse;`
+**`flex-direction:row-reverse;`**
 
 ![](https://ask.qcloudimg.com/http-save/1006489/4p83wn4fgq.gif)
 
-`flex-direction:column-reverse`
+**`flex-direction:column-reverse`**
 
 ![](https://ask.qcloudimg.com/http-save/1006489/5u3vo6jku5.gif)
 
-### 2. 沿主轴的排列处理
+### 2. 沿主轴的排列处理 flex-wrap
 
 弹性元素永远沿主轴排列，那么如果主轴排不下，该如何处理？
 
@@ -69,6 +84,12 @@ flex-flow = flex-drection + flex-wrap
 ```css
 flex-flow: row nowrap;
 ```
+
+> 注意：如果使用flex容器套容器的方式构建页面，那么元素的排列就会存在一个隐形的要求
+>
+> **在主容器中使用flex-directory定义主轴的方向，那么在子容器中处于主容器交叉轴上元素会弹性收缩**
+>
+> 也就是说在主容器的交叉轴上面使用了flex-shrink:1
 
 ## 三、元素如何弹性伸缩应对
 
@@ -100,7 +121,7 @@ flex-flow: row nowrap;
 2. 弹性元素2：100px→74.08px
 3. 弹性元素3：120px→88.89px
 
-先抛结论：`flex-shrink: 1`并非严格等比缩小，**它还会考虑弹性元素本身的大小**。
+先抛结论：`flex-shrink: 1`并非严格等比缩小，***它还会考虑弹性元素本身的大小***。
 
 - 容器剩余宽度：`-70px`
 - 缩小因子的分母：`1*50 + 1*100 + 1*120 = 270` (1为各元素flex-shrink的值)
@@ -126,9 +147,9 @@ flex-flow: row nowrap;
 
 ##### 元素放大的计算方法
 
-放大的计算方法并没有与缩小一样，将元素大小纳入考虑。
+***放大的计算方法并没有与缩小一样，将元素大小纳入考虑***。
 
-仅仅按`flex-grow`声明的份数算出每个需分配多少，叠加到原来的尺寸上。
+***仅仅按`flex-grow`声明的份数算出每个需分配多少，叠加到原来的尺寸上***。
 
 - 容器剩余宽度：`50px`
 - 分成每份：`50px / (3+2) = 10px`
@@ -177,9 +198,9 @@ flex-flow: row nowrap;
 - width: 非0;
 - flex-basis: 非0
 
-—— 数值相同时两者等效
+  - 数值相同时两者等效
 
-—— 同时设置，flex-basis优先级高
+  * 同时设置，flex-basis优先级高
 
 #### (3) flex-basis为auto
 
@@ -214,13 +235,100 @@ flex = flex-grow + flex-shrink + flex-basis
 
 #### (2) flex:1 和 flex:auto 的区别
 
+`flex` 的默认值是以上三个属性值的组合。假设以上三个属性同样取默认值，则 `flex` 的默认值是 0 1 auto。同理，如下是等同的：
+
+```css
+.item {flex: 2333 3222 234px;}
+.item {
+    flex-grow: 2333;
+    flex-shrink: 3222;
+    flex-basis: 234px;
+}
+```
+
+当 `flex` 取值为 `none`，则计算值为 0 0 auto，如下是等同的：
+
+```css
+.item {flex: none;}
+.item {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+}
+```
+
+当 `flex` 取值为 `auto`，则计算值为 1 1 auto，如下是等同的：
+
+```css
+.item {flex: auto;}
+.item {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+}
+```
+
+当 `flex` 取值为一个非负数字，则该数字为 `flex-grow` 值，`flex-shrink` 取 1，`flex-basis` 取 0%，如下是等同的：
+
+```css
+.item {flex: 1;}
+.item {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0%;
+}
+```
+
+当 `flex` 取值为一个长度或百分比，则视为 `flex-basis` 值，`flex-grow` 取 1，`flex-shrink` 取 1，有如下等同情况（注意 0% 是一个百分比而不是一个非负数字）：
+
+```css
+.item-1 {flex: 0%;}
+.item-1 {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0%;
+}
+.item-2 {flex: 24px;}
+.item-1 {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 24px;
+}
+```
+
+当 `flex` 取值为两个非负数字，则分别视为 `flex-grow` 和 `flex-shrink` 的值，`flex-basis` 取 0%，如下是等同的：
+
+```css
+.item {flex: 2 3;}
+.item {
+    flex-grow: 2;
+    flex-shrink: 3;
+    flex-basis: 0%;
+}
+```
+
+当 `flex` 取值为一个非负数字和一个长度或百分比，则分别视为 `flex-grow` 和 `flex-basis` 的值，`flex-shrink` 取 1，如下是等同的：
+
+```css
+.item {flex: 2333 3222px;}
+.item {
+    flex-grow: 2333;
+    flex-shrink: 1;
+    flex-basis: 3222px;
+}
+```
+
 其实可以归结于`flex-basis:0`和`flex-basis:auto`的区别。
 
 `flex-basis`是指定初始尺寸，当设置为0时（绝对弹性元素），此时相当于告诉`flex-grow`和`flex-shrink`在伸缩的时候不需要考虑我的尺寸；相反当设置为`auto`时（相对弹性元素），此时则需要在伸缩时将元素尺寸纳入考虑。
 
+也就是说：0就是在开始的时候就会分配全部的空间，而auto则是通过`flex-grow`和`flex-shrink`将元素尺寸大小纳入分配处理。
+
 因此从下图（转自W3C）可以看到绝对弹性元素如果`flex-grow`值是一样的话，那么他们的尺寸一定是一样的。
 
-![](https://ask.qcloudimg.com/http-save/1006489/b2ptrvy4u2.jpeg?imageView2/2/w/1620)
+![](https://www.w3.org/html/ig/zh/css-flex-1/rel-vs-abs-flex.svg)
+
+一个显示「绝对」伸缩（以零为基准值开始）与「相对」伸缩（以项目的内容大小为基准值开始）差异的图解。这三个项目的伸缩比例分别是「`1`」、「`1`」、「`2`」。
 
 ## 五、容器内如何对齐
 
