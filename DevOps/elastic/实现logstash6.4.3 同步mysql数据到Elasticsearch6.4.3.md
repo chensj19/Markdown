@@ -272,7 +272,7 @@ logstash 6.4.3下载地址：https://www.elastic.co/downloads/logstash
 * 7.进入bin目录，执行如下命令
  `logstash.bat -f ../config/logstash.conf`
  出现如下界面表示成功在同步数据了
- 
+
 * ![](https://img-blog.csdnimg.cn/20181112200655459.gif)
 
 通过kibana查看下数据：OK，同步过来39W+ 记录数据了。
