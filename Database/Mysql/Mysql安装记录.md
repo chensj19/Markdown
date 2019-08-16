@@ -160,3 +160,17 @@ sudo systemctl enable mysql
 
 ```
 
+## 8、常见问题
+
+### 8.1 ERROR 2003 (HY000): Can't connect to MySQL server on 'localhost' (10061)
+
+mysql server未启动
+
+```bash
+mysqld --install
+Service successfully installed.
+net start mysql
+MySQL 服务正在启动 ....
+MySQL 服务已经启动成功。
+```
+

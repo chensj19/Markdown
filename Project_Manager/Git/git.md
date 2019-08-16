@@ -129,3 +129,92 @@ git commit -m "ignore xxx.xml"
 git push
 ```
 
+## 分支
+
+### 常规操作
+
+#### 查看
+
+```bash
+git branch
+```
+
+#### 创建
+
+```bash
+# 创建+切换分支
+git checkout -b dev
+# 等同于
+# 创建分支
+git branch dev
+# 切换分支
+git checkout dev
+```
+
+#### 删除
+
+```bash
+git branch -d dev
+```
+
+#### 合并
+
+合并某分支到当前分支
+
+```bash
+git merge <name>
+```
+
+### 拉取远程分支并创建本地分支
+
+```bash
+# 查看所有远程分支
+git branch -r
+```
+
+#### 方法1
+
+```bash
+# 拉取远程分支并创建本地分支
+git checkout -b 本地分支名x origin/远程分支名x
+```
+
+> 使用该方式会在本地新建分支x，并自动切换到该本地分支x。
+>
+> 采用此种方法建立的本地分支会和远程分支建立映射关系。
+
+#### 方法2
+
+```bash
+git fetch origin 远程分支名x:本地分支名x
+```
+
+> 使用该方式会在本地新建分支x，但是不会自动切换到该本地分支x，需要手动checkout。
+>
+> 采用此种方法建立的本地分支不会和远程分支建立映射关系。
+
+### 分支映射
+
+建立本地分支与远程分支的映射关系（或者为跟踪关系track）。这样使用`git pull`或者`git push`时就不必每次都要指定从远程的哪个分支拉取合并和推送到远程的哪个分支了
+
+#### 查看本地分支与远程分支的映射关系
+
+使用以下命令（注意是双v）：
+
+```bash
+git branch -vv
+```
+
+#### 建立当前分支与远程分支的映射关系
+
+```bash
+git branch -u origin/addFile
+git branch --set-upstream-to origin/addFile
+```
+
+#### 撤销本地分支与远程分支的映射关系
+
+```bash
+git branch --unset-upstream
+```
+
