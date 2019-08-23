@@ -14,3 +14,9 @@ INSERT INTO [dbo].[SYS_MOD_POPEDOM]
 SET IDENTITY_INSERT SYS_MOD_POPEDOM ON  --关闭
 ```
 
+### 自增长值重置
+
+```sql
+ DBCC CHECKIDENT('TableName', RESEED, 0)
+```
+

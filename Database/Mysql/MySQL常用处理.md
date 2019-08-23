@@ -114,4 +114,25 @@ character_set_server	             (默认的内部操作字符集)
       jdbc:mysql://localhost:3306/demo?serverTimezone=Hongkong
       ```
 
-      
+
+## 自增主键设置
+
+### 建表设置
+
+```sql
+ create table t_user(
+    id int not null auto_increment primary key,
+    username varchar(128) not null,
+    password varchar(128),
+    age int,
+    sex int,
+    reg_date date
+ );
+```
+
+### 修改主键类型
+
+```sql
+ALTER TABLE `database`.`table` CHANGE COLUMN `id` `id` INT(11) NOT NULL AUTO_INCREMENT  ;
+```
+
