@@ -957,3 +957,45 @@ sudo update-alternatives --install /usr/bin/jar  jar  /opt/jdk1.8.0_181/bin/jar 
 
 
 
+## 14、更换Mirrors
+
+### 更换阿里源
+
+```bash
+cd /etc/yum.repos.d/
+mkdir repo_bak
+mv *.repo repo_bak/
+ls
+repo_bak
+```
+
+```bash
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+```
+
+```bash
+yum clean all && yum makecache
+```
+
+### 安装EPEL源
+
+```bash
+yum list | grep epel-release
+epel-release.noarch                         7-11                        extras   
+yum install -y epel-release
+```
+
+```bash
+yum clean all && yum makecache
+```
+
+### 查看源
+
+```bash
+#查看启用的仓库
+yum repolist enabled
+ #查看所有的仓库
+yum repolist all
+```
+
