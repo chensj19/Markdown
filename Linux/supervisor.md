@@ -150,3 +150,54 @@ serverurl=unix:///var/run/supervisor/supervisor.sock ; use a unix:// URL  for a 
 files = /etc/supervisor/config.d/*.ini
 ```
 
+## 常用操作
+
+* 重新启动
+```bash
+supervisorctl reload
+```
+* 查看进程
+```bash
+supervisorctl status
+```
+* 启动某个进程
+```bash
+supervisorctl start xxxx
+```
+* 停止某个进程
+```bash
+supervisorctl stop xxxx
+```
+* 重启某个进程
+```bash
+supervisorctl restart xxxx
+```
+
+### 配置服务
+
+```bash
+[Unit]
+Description=Process Monitoring and Control Daemon
+After=rc-local.service nss-user-lookup.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+ExecStop=/usr/bin/supervisorctl shutdown
+ExecReload=/usr/bin/supervisorctl reload
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+```
+
+设置开机启动
+
+```bash
+systemctl daemon-reload
+systemctl start supervisord
+systemctl enable supervisord
+```
+
