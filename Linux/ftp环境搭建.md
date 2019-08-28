@@ -1,3 +1,5 @@
+# 虚拟账户FTP环境搭建
+
 ## ftp环境搭建
 
 CentOS 7.0默认使用的是firewall作为防火墙，
@@ -194,3 +196,132 @@ $ systemctl restart vsftpd.service
 
 可通过 ` tail -f /var/log/secure` 指令，查看服务器安全日志，便于分析错误问题，设置操作效果一定要仔细.....
 
+# 简版FTP环境搭建
+
+## 1、SELinux 处理
+
+```bash
+$ setenforce 0 #让SELinux进入Permissive模式（宽容模式）
+```
+
+设置SELiunx：
+
+```bash
+$ /usr/sbin/sestatus -v     #查看SELinux状态
+SELinux status:                 enabled    #启用
+SELinuxfs mount:                /sys/fs/selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             targeted
+Current mode:                   enforcing
+setenforce 0 #暂时让SELinux进入Permissive模式
+```
+
+我们尝试访问一下ftp目录，发现能够正常访问。我们查看一下权限：
+
+```bash
+$ getsebool -a | grep ftp
+ftpd_anon_write --> off
+ftpd_connect_all_unreserved --> off
+ftpd_connect_db --> off
+ftpd_full_access --> off
+ftpd_use_cifs --> off
+ftpd_use_fusefs --> off
+ftpd_use_nfs --> off
+ftpd_use_passive_mode --> off
+httpd_can_connect_ftp --> off
+httpd_enable_ftp_server --> off
+tftp_anon_write --> off
+tftp_home_dir --> off
+```
+
+**ftp_home_dir和allow_ftpd_full_access必须为on 才能使vsftpd 具有访问ftp根目录，以及文件传输等权限。**
+
+```bash
+$ setsebool -P tftp_home_dir 1
+$ setsebool -P allow_ftpd_full_access 1
+```
+
+让我们再回到强制模式：
+
+```bash
+$ setenforce 1 #进入Enforcing模式
+```
+
+## 2、安装vsftpd
+
+```bash
+# 查看是否已经安装了vsftpd
+$ vsftpd -version
+# 安装vsftpd
+$ yum install -y vsftpd
+# 创建ftpuser用户目录，也可以在创建用户的时候指定
+# 第一种方法
+$ mkdir /home/vsftpd
+$ useradd -d /home/vsftpd -s /usr/sbin/nologin ftpuser
+$ passwd ftpuser
+# 第二种方法
+$ useradd -d /home/vsftpd -s /usr/sbin/nologin ftpuser
+$ passwd ftpuser
+# 由于上面设置用户 -s /usr/sbin/nologin,但是在/etc/shells中并没有这个目录，此时登录会报错，解决方法就是将/usr/sbin/nologin添加到/etc/shells即可
+$ vim /etc/shells
+```
+
+## 3、配置文件修改
+
+* `vim /etc/vsftpd/vsftpd.conf`
+
+```bash
+$ cp  /etc/vsftpd/vsftpd.conf  /etc/vsftpd/vsftpd.conf.bak
+$ vim /etc/vsftpd/vsftpd.conf
+```
+
+* 配置文件修改
+
+```bash
+# 去掉前面的注释
+chroot_local_user=YES
+
+ascii_upload_enable=YES
+ascii_download_enable=YES
+
+# 文件末尾添加
+allow_writeable_chroot=YES
+```
+
+## 4、防火墙
+
+```bash
+$ firewall-cmd --permanent --zone=public --add-service=ftp
+$ firewall-cmd --reload
+```
+
+## 5、重启vsftpd
+
+```bash
+# 设置开机启动：
+$ systemctl enable vsftpd.service
+# 启动vsftpd服务
+$ systemctl start  vsftpd.service
+```
+
+禁止ftp用户通过22端口登录ftp服务器：
+
+由于需要限制ftp用户在自己的目录，在21端口下没有问题，但当ftp用户用sftp登录时，还是可以访问上级目录，于是禁止ftp用户ssh登录，切断22端口的通信。
+
+首先，执行如下命令，找到nologin的[shell](https://www.centos.bz/category/shell/)：
+
+```bash
+vi /etc/shells
+```
+
+可以看到禁止登录的[shell](https://www.centos.bz/tag/shell/)文件为/usr/sbin/nologin，然后执行如下命令：
+
+```bash
+usermod -s /usr/sbin/nologin tomas
+```
+
+如果要恢复tomas的ssh登录，执行如下命令：
+
+```bash
+usermod -s /bin/bash tomas
+```
