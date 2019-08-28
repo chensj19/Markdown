@@ -325,3 +325,13 @@ usermod -s /usr/sbin/nologin tomas
 ```bash
 usermod -s /bin/bash tomas
 ```
+
+# 参考文件
+
+https://blog.51cto.com/python20101030/2335483
+
+[https://www.centos.bz/2017/12/centos7部署vsftpd服务/](https://www.centos.bz/2017/12/centos7部署vsftpd服务/)
+
+https://www.linuxidc.com/Linux/2017-12/149909.htm
+
+https://blog.51cto.com/andyxu/2168875
