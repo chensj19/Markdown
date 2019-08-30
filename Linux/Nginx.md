@@ -134,7 +134,7 @@ Nginx 是 C语言 开发，可以安装在Linux和Windows上面，建议是安�
 rpm -qa|grep gcc
 ```
 
-#### 3.1.1 gcc
+#### 3.1.1 **gcc**
 
 安装 nginx 需要先将官网下载的源码进行编译，编译依赖 gcc 环境，如果没有 gcc 环境，则需要安装：
 
@@ -311,7 +311,7 @@ firewall-cmd --reload
 
 ### 3.7 开机启动
 
-#### 3.7.1 添加到rc.local
+#### 3.7.1 **添加到rc.local**
 
 在`rc.local`增加启动代码就可以了。
 
@@ -327,7 +327,9 @@ vi /etc/rc.local
 chmod 755 rc.local
 ```
 
-#### 3.7.2 服务模式
+#### 3.7.2 **服务模式**
+
+##### 3.7.2.1 **service**
 
 1. **在系统服务目录里创建nginx.service文件**
    `vi /lib/systemd/system/nginx.service`
@@ -361,6 +363,63 @@ WantedBy=multi-user.target
 > PrivateTmp=True表示给服务分配独立的临时空间
 > 注意：[Service]的启动、重启、停止命令全部要求使用绝对路径
 > [Install]运行级别下服务安装的相关设置，可设置为多用户，即系统运行级别为3
+
+##### 3.7.2.2 **chkconfig**
+
+```bash
+#!/bin/bash
+# chkconfig: - 85 15
+# description: nginx is a World Wide Web server. It is used to serve
+PATH=/usr/local/nginx
+DESC="nginx daemon"
+NAME=nginx
+DAEMON=$PATH/sbin/$NAME
+CONFIGFILE=$PATH/conf/$NAME.conf
+PIDFILE=$PATH/logs/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+set -e
+[ -x "$DAEMON" ] || exit 0
+do_start() {
+$DAEMON -c $CONFIGFILE || echo -n "nginx already running"
+}
+do_stop() {
+$DAEMON -s stop || echo -n "nginx not running"
+}
+do_reload() {
+$DAEMON -s reload || echo -n "nginx can't reload"
+}
+case "$1" in
+start)
+echo -n "Starting $DESC: $NAME"
+do_start
+echo "."
+;;
+stop)
+echo -n "Stopping $DESC: $NAME"
+do_stop
+echo "."
+;;
+reload|graceful)
+echo -n "Reloading $DESC configuration..."
+do_reload
+echo "."
+;;
+restart)
+echo -n "Restarting $DESC: $NAME"
+do_stop
+do_start
+echo "."
+;;
+*)
+echo "Usage: $SCRIPTNAME {start|stop|reload|restart}" >&2
+exit 3
+;;
+esac
+exit 0
+
+```
+
+
 
 ## 4、编译参数说明
 
