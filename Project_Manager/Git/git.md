@@ -155,6 +155,8 @@ git checkout dev
 
 ```bash
 git branch -d dev
+# 删除远程分支
+git push origin --delete dev
 ```
 
 #### 合并
