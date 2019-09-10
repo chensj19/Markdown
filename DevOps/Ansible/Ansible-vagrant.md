@@ -68,7 +68,9 @@ vagrant init ubuntu/trusty64
 vagrant up
 ```
 
-### 4、vagrant常用操作
+### 4、vagrant 常用命令
+
+#### 4.1 vagrant box 基本命令
 
 ```bash
 # 查看已经安装的虚拟机
@@ -79,7 +81,61 @@ vagrant box remove box_name
 # centos7 别名 自己定义的虚拟机名称
 # virtualbox.box 本地box名称
 vagrant box add centos7 virtualbox.box
+# 更新本地环境中指定的box
+vagrant box update box-name
+# 重新打包本地环境中指定的box
+vagrant box repackage box-name
 ```
+
+#### 4.2 vagrant基本命令
+
+- 在空文件夹初始化虚拟机
+
+  ```bash
+  vagrant init [box-name]
+  ```
+
+- 在初始化完的文件夹内启动虚拟机
+
+  ```bash
+  vagrant up
+  ```
+
+- ssh登录启动的虚拟机
+
+  ```bash
+  vagrant ssh
+  ```
+
+- 挂起启动的虚拟机
+
+  ```bash
+  vagrant suspend
+  ```
+
+- 重启虚拟机
+
+  ```bash
+  vagrant reload
+  ```
+
+- 关闭虚拟机
+
+  ```bash
+  vagrant halt
+  ```
+
+- 查找虚拟机的运行状态
+
+  ```bash
+  vagrant status
+  ```
+
+- 销毁当前虚拟机
+
+  ```bash
+  vagrant destroy
+  ```
 
 ## 虚拟机安装
 

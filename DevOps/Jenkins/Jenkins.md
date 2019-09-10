@@ -51,3 +51,26 @@
 $ vim /etc/default/jenkins
 ```
 
+* 清华源
+
+```bash
+https://mirrors.tuna.tsinghua.edu.cn/jenkins/redhat/
+# plugin
+http://mirror.xmission.com/jenkins/updates/update-center.json   # 推荐
+http://mirrors.shu.edu.cn/jenkins/updates/current/update-center.json
+https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json
+```
+
+### nginx 代理
+
+```bash
+location / {
+      proxy_pass http://127.0.0.1:8080;
+      proxy_redirect off;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+

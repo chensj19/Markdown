@@ -256,6 +256,19 @@ make && make install
 nginx: /usr/local/nginx
 ```
 
+#### 3.2.2 rpm安装
+
+```bash
+# 将nginx放到yum repro库中
+rpm -ivh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+# 查看包的信息
+yum info nginx
+# 安装
+yum install -y nginx
+```
+
+
+
 ### 3.3 启动/停止Nginx
 
 ```bash
