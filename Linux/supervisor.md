@@ -175,6 +175,8 @@ supervisorctl restart xxxx
 
 ### 配置服务
 
+`vim /usr/lib/systemd/system/supervisord.service`
+
 ```bash
 [Unit]
 Description=Process Monitoring and Control Daemon
