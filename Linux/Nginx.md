@@ -1119,3 +1119,9 @@ echo "www.chen.com" >> /www/html/www.chen.com/index.html
 192.168.78.138 www.chen.com
 ```
 
+* 反向代理
+
+```bash
+setsebool -P httpd_can_network_connect 1
+```
+
