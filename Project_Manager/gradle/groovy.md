@@ -106,6 +106,82 @@ int hello(msg) {
 
 * Groovy中的注释和Java中相同。
 
+## Groovy 学习
+
+### Groovy 基础语法
+
+#### Groovy变量
+
+##### Groovy变量类型
+
+​	类型包含基本类型和对象类型，基本类型与Java中基本类型是一样的，注意一点，在Groovy中基本类型也是**对象类型**。
+
+```groovy
+// 在Groovy中 基本类型都是对象
+int x = 10
+double d = 3.14
+
+println x.class
+println d.class
+// 结果
+class java.lang.Integer
+class java.lang.Double
+```
+
+##### Groovy变量定义
+
+变量定义分为两种类型，强类型定义和弱类型定义
+
+* 强类型定义
+
+  ```groovy
+  int x = 10
+  ```
+
+* 弱类型定义
+
+使用def定义变量，编译器会根据后面的类型来指定类型
+
+```groovy
+def a = 1
+def b = 3.14
+def c = 'dddd'
+println(a.class)
+println(b.class)
+println(c.class)
+// 结果
+class java.lang.Integer
+class java.math.BigDecimal
+class java.lang.String
+```
+
+强类型定义与弱类型定义使用的区别
+
+* 不对外使用，只有自己使用的情况下，可以使用def来定义即可
+
+* 提供给其他模块使用，需要保证参数正确性，使用强类型定义
+* def定义存在一个问题，当对应值发生改变后，可以自动完成类型转换，如果用于传递参数，则无法确定指定类型，def在定义类型的时候指定的类型是Object类型
+
+```groovy
+def c = 'dddd'
+println(c.class)
+c = 1.2
+println(c.class)
+// 结果
+class java.lang.String
+class java.math.BigDecimal
+```
+
+#### Groovy字符串
+
+
+
+### Groovy 闭包
+
+### Groovy 数据结构
+
+### Groovy 面向对象
+
 ## Groovy的数据类型
 
   在Groovy中，数据类型有：

@@ -1125,3 +1125,11 @@ echo "www.chen.com" >> /www/html/www.chen.com/index.html
 setsebool -P httpd_can_network_connect 1
 ```
 
+## 7. rpm
+
+```bash
+rpm -ivh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+yum info nginx
+yum install nginx -y
+```
+
