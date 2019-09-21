@@ -174,9 +174,340 @@ class java.math.BigDecimal
 
 #### Groovy字符串
 
+在Groovy中定义了两种类型的字符串，一种是String，另一种是GString
 
+##### String定义方式
+
+```groovy
+// 字符串
+def name = 'This is String'
+println(name.class)
+
+def thupleName = '''This is a Tuple String'''
+println(thupleName.class)
+
+// 上述两种字符串定义方式的区别主要在于后一种可以定义格式
+
+def all_name = '''
+ David
+ Tom
+ Green
+'''
+println(all_name)
+
+def double_name = "This common module"
+println("double_name")
+println(double_name.class)
+```
+
+单引号定义：不可变字符串
+
+三引号定义：可以书写格式的不可变字符串
+
+双引号定义：可扩展字符串，可以在内部使用变量
+
+```groovy
+println('GString')
+def aname = 'demo'
+def hello = "hello ${aname}"
+println(hello)
+println(hello.class)
+// 结果
+hello demo
+class org.codehaus.groovy.runtime.GStringImp
+// 在字符串中使用表达式
+println('在字符串中使用表达式')
+// 可扩展做任意的表达式
+def sum = "The sum is of 2 add 3 equals ${ 2 + 3}"
+println(sum)
+```
+
+注意如下代码
+
+```groovy
+println('String GString Convert')
+
+String echo(String message){
+    return message
+}
+
+def result = echo(sum)
+println(result)
+```
+
+> 结果显示上述代码运行正常，也就是说，在实际代码中GString和String是可以互转的
+
+##### String 方法
+
+在Groovy中，String方法来源如下图：
+
+* 方法来源
+  * java.lang.String
+  * DefaultGroovyMethod Groovy中默认方法实现
+  * StringGroovyMethod String的默认方法实现，继承DefaultGroovyMethod 重写适用于String
+    * 按照参数类型可以分为两类
+    * 普通类型参数
+    * 闭包类型参数
+
+```groovy
+/*========================= 字符串方法 ===============================================*/
+// 字符串填充
+// center 字符串填充，以当前字符串为中心，两边填充
+// 第一个参数指定填充后字符串长度，第二个参数指定填充的内容，不填则为空格
+def str = 'Groovy'
+println str.center(8,'1')
+// padLeft 字符串填充，从当前字符串左边填充 参数同center
+println str.padLeft(8,'1')
+// padLeft 字符串填充，从当前字符串右边填充
+println str.padRight(8,'1')
+// 字符串对比 可以使用方法compareTo，也可以使用操作符 > < =
+def str2 = 'Hello'
+// 比较的是两个字符串的Unicode编码
+println(str > str2)
+
+// 索引
+// java 结果 G
+println(str.getAt(0))
+// groovy  结果 G
+println(str[0])
+// 传入范围 结果 Gr
+println(str[0..1])
+
+// 减法 结果 Groovy 因为没有包含指定的值
+println(str.minus(str2))
+println(str - str2)
+
+str = "hello groovy"
+str2 = "hello"
+println("minus")
+println("str:${str}")
+println("str2:${str2}")
+println("str - str2:${str - str2}")
+
+// reverse 反转 倒序
+println("String reverse:${str.reverse()}")
+
+// 首字母大写 仅限于首字母
+println("首字母大写:${str.capitalize()}")
+
+// 判断是否是数字型字符串
+println("String is Number String:${str.isNumber()}")
+// 可以通过使用toInteger/toLong等转换为指定的数字类型
+str = '12345'
+println("String to Integet:${str.toInteger()}")
+```
+
+####  逻辑控制
+
+* 逻辑控制
+
+  * 顺序逻辑
+
+    * 单步往下执行
+
+  * 条件逻辑
+
+    * if/else
+
+    * switch/case
+
+      ```groovy
+      // switch 支持任意类型的类型匹配
+      def x = 1.23
+      def result
+      switch (x) {
+          case 'foo':
+              result = 'found foo'
+              break
+          case 'bar':
+              result = 'found bar'
+              break
+          case [1,2,3, 'list']:  // 列表
+              result = 'found list'
+              break
+          case 12..30: // 范围
+              result = 'in range'
+              break
+          case Integer:
+              result = 'Integer'
+              break
+          case BigDecimal:
+              result = 'BigDecimal'
+              break
+          default:
+              result = 'default'
+              break
+      }
+      println(result)
+      ```
+
+  * 循环逻辑
+
+    * while循环
+    * for循环
+
+    ```groovy
+    // 对范围的for循环
+    def sum = 0
+    for ( i in 0..9) {
+        sum +=i
+    }
+    println(sum)
+    /*对list的循环*/
+    sum = 0
+    for(i in [1,2,3,4,5,6,7,8,9]){
+        sum += i
+    }
+    println(sum)
+    /*对map循环*/
+    sum = 0
+    for (item in ['d1':1,'d2':2,'d3':3,'d4':4,'d5':5]){
+        sum += item.value
+    }
+    println(sum)
+    ```
 
 ### Groovy 闭包
+
+Groovy中有一种特殊的类型，叫做Closure，翻译过来就是闭包，这是一种类似于C语言中函数指针的东西。闭包用起来非常方便，在Groovy中，闭包作为一种特殊的数据类型而存在，闭包可以作为方法的参数和返回值，也可以作为一个变量而存在。
+
+#### 闭包基础
+
+主要内容如下
+
+* 闭包基础
+
+  * 闭包概念
+
+    * 闭包定义
+
+      ```groovy
+      // 闭包定义
+      def closu = { println('This is Closure')}
+      ```
+
+    * 闭包调用
+
+      ```groovy
+      // 闭包调用
+      closu.call()
+      closu()
+      ```
+
+  * 闭包参数
+
+    * 普通参数
+
+    ```groovy
+    // 闭包参数 箭头前为参数，后面为闭包体
+    def closure_param = { name -> println("Hello ${name}, welcome to groovy wrold!")}
+    // 调用
+    closure_param('aaaa')
+    closure_param.call('bbbb')
+    // 多参数
+    closure_param = { name,age -> println("Hello ${name}, age is ${age} ,welcome to groovy wrold!")}
+    // 调用
+    closure_param('aa',20)
+    ```
+
+    * 隐式参数
+
+    ```groovy
+    // 隐式参数
+    closure_param = { println("Hello , ${it}")}
+    // 调用
+    closure_param('ccc')
+    // 隐式参数 默认情况下是null
+    closure_param =  { println("Hello , ${it}")}
+    // 调用
+    closure_param();
+    ```
+
+  * 闭包返回值
+
+    * 返回值获取
+
+    ```groovy
+    println('闭包的返回值')
+    // 使用return获取返回值
+    closure_param = {name -> return "Hello , ${name} !"}
+    def result = closure_param('Groovy')
+    println(result) // 返回 Hello , Groovy !
+    // 不使用return
+    closure_param = {name -> println( "Hello , ${name} !")}
+    result = closure_param('Groovy')
+    println(result) // 返回null
+    ```
+
+    > 闭包都是有返回值的
+
+#### 闭包使用
+
+* 闭包使用
+
+  * 与基本类型的集合使用
+
+  ```groovy
+  //- 与基本类型的集合使用
+  int x = 10
+  // upto 用来求num的阶乘
+  static int fab(int num){
+      int result = 1;
+      1.upto(num,{n -> result *= n})
+      return result;
+  }
+  def result = fab(x)
+  println(result)
+  // downto 用来求num的阶乘
+  static int fab2(int num){
+      int result = 1;
+      num.downto(1){
+          n ->  result *=n
+      }
+      return result
+  }
+  result = fab2(x)
+  println(result)
+  // times 方法，不能用来获取阶乘，源码中index从0开始
+  static int count(num){
+      int result = 0
+      num.times {
+          n -> result += n
+      }
+      return result
+  }
+  
+  result = count(x)
+  println(result)
+  ```
+
+  > 闭包中传入参数的数量需要通过源码来进行确定，比如upto方法
+  >
+  > ```groovy
+  > public static void upto(Number self, Number to, @ClosureParams(FirstParam.class) Closure closure) {
+  >         int self1 = self.intValue();
+  >         int to1 = to.intValue();
+  >         if (self1 <= to1) {
+  >             for (int i = self1; i <= to1; i++) {
+  >                // 闭包使用参数的数量与参数类型确定
+  >                 closure.call(i);
+  >             }
+  >         } else
+  >             throw new GroovyRuntimeException("The argument (" + to +
+  >                     ") to upto() cannot be less than the value (" + self + ") it's called on.");
+  >     }
+  > ```
+  >
+  
+* 与String结合使用
+  * 与数据结构结合使用
+  * 与文件等结合使用
+
+#### 闭包进阶使用
+
+
+
+
 
 ### Groovy 数据结构
 
