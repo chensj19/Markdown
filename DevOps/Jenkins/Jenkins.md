@@ -365,3 +365,72 @@ vim  /etc/sysconfig/jenkins
 JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Dhudson.util.ProcessTree.disable=true "
 ```
 
+## 六、Nginx 无法转发
+
+```bash
+setsebool -P httpd_can_network_connect 1
+```
+
+## 七、 jenkins反向代理配置
+
+### 7.1 根路径
+
+```bash
+location / {
+    proxy_pass http://localhost:8080;
+    proxy_read_timeout  90;
+    proxy_set_header X-Forwarded-Host $host:$server_port;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+### 7.2 指定前缀
+
+假设指定前缀为`/jenkins`
+
+#### 配置Jenkins
+
+修改`/etc/sysconfig/jenkins`，在`JENKINS_ARGS`参数中添加：
+
+```bash
+--prefix=/jenkins
+```
+
+重启Jenkins:
+
+```bash
+systemctl restart jenkins
+```
+运行`systemctl status jenkins -l`查看JENKINS_ARGS是否生效。
+
+在浏览器中访问`http://<server_ip>:<jenkins_port>/jenkins`，打开`Manage Jenkins/Configure System`，将Jenkins URL后添加`/jenkins`
+
+#### 配置nginx
+
+```nginx
+location /jenkins/ {
+    proxy_pass http://localhost:8080/jenkins/;
+    proxy_read_timeout  90;
+    proxy_set_header X-Forwarded-Host $host:$server_port;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+```
+
+## 八、 更新慢
+
+```bash
+cd cd {你的Jenkins工作目录}/updates  #进入更新配置位置
+#将default.json中内容替换
+http://updates.jenkins-ci.org/download/
+http://mirrors.tuna.tsinghua.edu.cn/jenkins/
+
+http://www.google.com/ 
+https://www.baidu.com/
+```
+

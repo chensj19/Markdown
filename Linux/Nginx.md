@@ -1133,3 +1133,10 @@ yum info nginx
 yum install nginx -y
 ```
 
+## 8、反向代理问题
+
+### 8.1 无法转发
+
+```bash
+setsebool -P httpd_can_network_connect 1
+```
