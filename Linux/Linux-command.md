@@ -422,7 +422,7 @@ PasswordAuthentication yes
 
 ## 5、简版vsftpd安装
 
-### 一、安装并启动FTP服务
+### 5.1、安装并启动FTP服务
 
 1.查询是否系统已经自带了vsftpd ：rpm -q vsftpd
 
@@ -468,7 +468,7 @@ firewall-cmd --state    检测防火墙状态
 
 firewall-cmd --permanent --list-port    查看端口列表
 
-### 二、配置 FTP 权限
+### 5.2、配置 FTP 权限
 
 1、了解 VSFTP 配置
 
@@ -484,13 +484,14 @@ user_list 配置用户访问控制------这里的用户默认情况（即在/etc
 
 匿名访问和切换根目录都会给服务器带来安全风险，我们把这两个功能关闭。编辑 /etc/vsftpd/vsftpd.conf，找到下面两处配置并修改：
 
-禁用匿名用户  YES 改为NO anonymous_enable=NO
+```bash
+anonymous_enable=NO # 禁用匿名用户  YES 改为NO 
 
-禁止切换根目录 删除# chroot_local_user=YES
+chroot_local_user=YES  #  禁止切换根目录 删除
 
-编辑完成后保存配置，重新启动 FTP 服务 service vsftpd restart
+#编辑完成后保存配置，重新启动 FTP 服务 service vsftpd restart
 
-其它配置项说明：
+# 其它配置项说明：
 
 anonymous_enable=YES #允许匿名登陆 
 
@@ -543,6 +544,7 @@ tcp_wrappers=YES
 chroot_list 文件需要自己建,内容一行一个用户名字 
 
 anon_root=/data/ftp/public #修改匿名用户的访问路径
+```
 
 3 创建 FTP 用户
 
@@ -561,6 +563,14 @@ useradd ftpuser -s /sbin/nologin
 变更用户属性：#usermod -s /sbin/nologinftpuser (/bin/bash：可以登录shell，/bin/false：禁止登录shell )
 
 查看当前服务：#netstat -lntp
+
+### 5.3、下载
+
+```
+wget ftp://ftpuser:123456@172.16.9.242/scripts/ansible/common/jar/ansible.zip
+```
+
+
 
 ## 6、设置固定IP
 
