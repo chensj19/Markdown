@@ -220,13 +220,44 @@ After=network.target
 
 [Service]
 Type=forking
-ExecStart=/usr/local/bin/consul agent -server -ui -bootstrap-expect=1 -data-dir=/opt/consul/data -node=agent-one -advertise=192.168.31.97 -bind=0.0.0.0 -client=0.0.0.0
-ExecStop=ps -ef|grep consul |awk '{print $2}'| kill -9 $1
+ExecStart=/usr/local/consul/start.sh
+ExecStop=ps -ef|grep consul.service |awk '{print $2}'| kill -9 $1
 ExecReload=/usr/local/bin/consul reload
 PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
+```
+
+`vim /usr/local/consul/start.sh`
+
+```bash
+#!/bin/bash
+/usr/bin/nohup /usr/local/bin/consul agent -server -node=consul-97 -data-dir=/data/consul/ -config-dir=/etc/consul/ -ui -log-file=/var/log/consul/consul-run-$(date +%Y%m%d).log -bind=192.168.31.97 -join=192.168.31.97 -datacenter=consul >> /var/log/consul/consul-start.log 2>&1 &
+```
+
+ 文件夹
+
+```bash
+mkdir -p /data/consul/
+mkdir -p /var/log/consul/
+mkdir -p /etc/consul
+```
+
+`vim /etc/consul/server.json`
+
+```json
+{
+    "data_dir": "/data/consul",
+    "log_level": "INFO",
+    "node_name": "consul-97",
+    "server": true,
+    "bootstrap_expect": 1,
+    "client_addr": "0.0.0.0",		
+    "advertise_addr": "192.168.31.97",
+    "advertise_addr_wan": "192.168.31.97"
+}
+
 ```
 
 ### 1.4 测试
