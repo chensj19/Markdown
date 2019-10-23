@@ -437,3 +437,24 @@ sed -i 's/www.google.com/www.baidu.com/g' default.json
 sed -i 's/updates.jenkins-ci.org\/download/mirrors.tuna.tsinghua.edu.cn\/jenkins/g' default.json
 https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-nter.json
 ```
+
+## 九、Jenkins Control Plugin 
+
+idea 安装 Jenkins Control Plugin 
+
+在 Intellij 中设置Jenkins 服务器，确保测试成功。
+
+<img src="https://img-blog.csdnimg.cn/20190108170759307.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3NpbmF0XzM2NzEwNDU2,size_16,color_FFFFFF,t_70"/>
+
+建议：如果启用 CSRF的话（默认启用），到 系统管理 -> Configure Global Security（全局安全配置）中, 勾选下图选项.
+
+![](https://img-blog.csdnimg.cn/20190108164848985.png)
+
+注意：如果你用的是 jenkins 2, 并且启用了 CSRF(防止跨站点请求伪造），需要填 Crumb Data， 这个可以通过以下url获取:
+
+```bash
+curl -s 'http://admin:admin@localhost:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)'
+Jenkins-Crumb:78dcf95a78567cf3a88e073e906081f57b2b389a9d63a4b8d0e6a45a6938bc61
+```
+
+> 注意 在使用账号与密码、账号与API TOKEN的时候产生的Crumb Data 是不一样的
