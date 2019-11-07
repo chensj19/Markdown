@@ -30,7 +30,7 @@ Docker镜像安装
 
 ### 运行Docker镜像
 
-    docker run -d -p 12345:12345 oddrationale/docker-shadowsocks -s 0.0.0.0 -p 12345 -k laosiji -m aes-256-cfb
+    docker run -d -p 31234:31234 oddrationale/docker-shadowsocks -s 0.0.0.0 -p 31234 -k chensj881008 -m aes-256-cfb
 >-d参数允许 Docker 常驻后台运行
 -p来指定要映射的端口，这里端口号统一保持一致即可。例如：12345
 -s服务器 IP 地址，不用改动
