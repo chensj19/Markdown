@@ -94,3 +94,24 @@ $ nrm del qihoo
 ```
 
  
+
+## 更新模块
+
+npm查看某个模块的所有版本,如styled-components
+
+```bash
+npm info styled-components
+```
+
+npm更新某个模块
+
+```bash
+npm i styled-components@latest \\更新到最新版
+```
+
+或者
+
+```bash
+npm i styled-components@2.2.1 \\更新到具体某个版本
+```
+
