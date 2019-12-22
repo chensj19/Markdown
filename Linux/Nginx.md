@@ -164,7 +164,7 @@ OpenSSL 是一个强大的安全套接字层密码库，囊括主要的密码算
 nginx 不仅支持 http 协议，还支持 https（即在ssl协议上传输http），所以需要在 Centos 安装 OpenSSL 库。
 
 ```bash
-yum install -y openssl openssl-devel
+yum install -y tai
 ```
 
 ### 3.2 下载与安装
