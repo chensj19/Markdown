@@ -131,8 +131,8 @@ CREATE DATABASE ANT  DEFAULT CHARACTER SET UTF8 COLLATE UTF8_GENERAL_CI;
 ### 创建用户
 
 ```bash
-create user winning@'172.17.%.%' identified by '123456';
-grant all privileges on *.* to winning@'172.17.%.%' identified by '123456';
+create user winning@'%' identified by 'Maria@win60.DB';
+grant all privileges on *.* to winning@'%' identified by 'Maria@win60.DB';
 flush privileges;
 ```
 
