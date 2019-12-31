@@ -34,7 +34,7 @@ mv alisql-5.6.32.tar.gz /root/rpmbuild/SOURCE
 
 ## 4、编写配置文件
 
-在`rpmbuild/SPECS`目录下执行`rpmdev-newspec -o alisql.spec`，会在当前目录下生成名为`alisql.spec`的模板文件
+在`rpmbuild/SPECS`目录下执行`rpmdev-newspec -o alisql.spec`，会在当前目录下生成名为`al模板文件
 
 ```bash
 rpmdev-newspec -o alisql.spec
@@ -263,77 +263,3 @@ rpmbuild -bb /root/rpmbuild/SPECS/alisql.spec
 ```
 
 等待软件打包成功，此时会在rpmbuild/RPMS/x86_64文件夹下生成rpm软件包。
-
-## 7、spec 文件规范
-
-​		能熟练掌握以上命令以及部分参数含义，管理日常的rpm软件包就不成问题了。然而随着Linux风靡全球，越来越多的开发者喜欢采用RPM格式来发布自己的软件包。那么RPM软件包是怎样制作的呢？对大多数Linux开发工程师来说是比较陌生的。
-
-​		其实，制作RPM软件包并不是一件复杂的工作，其中的关键在于编写SPEC软件包描述文件。要想制作一个rpm软件包就必须写一个软件包描述文件（SPEC）。这个文件中包含了软件包的诸多信息，如软件包的名字、版本、类别、说明摘要、创建时要执行什么指令、安装时要执行什么操作、以及软件包所要包含的文件列表等等。
-
-### 7.1 文件头
-
-一般的spec文件头包含以下几个域：
-
-1. Summary：用一句话概括该软件包尽量多的信息。
-2. Name：软件包的名字，最终RPM软件包是用该名字与版本号，释出号及体系号来命名软件包的。
-3. Version：软件版本号。仅当软件包比以前有较大改变时才增加版本号。
-4. Release：软件包释出号。一般我们对该软件包做了一些小的补丁的时候就应该把释出号加1。
-5. Vendor：软件开发者的名字。
-6. Copyright：软件包所采用的版权规则。具体有：GPL（自由软件），BSD，MIT，Public Domain（公共域），Distributable（贡献），commercial（商业），Share（共享）等，一般的开发都写GPL。
-7. Group：软件包所属类别，
-   1. 具体类别有：
-
-> Amusements/Games （娱乐/游戏）Amusements/Graphics（娱乐/图形）
->
-> Applications/Archiving （应用/文档）Applications/Communications（应用/通讯
->
-> Applications/Databases （应用/数据库）Applications/Editors （应用/编辑器）
->
-> Applications/Emulators （应用/仿真器）Applications/Engineering （应用/工程）
->
-> Applications/File （应用/文件）Applications/Internet （应用/因特网）
->
-> Applications/Multimedia（应用/多媒体）Applications/Productivity （应用/产品）
->
-> Applications/Publishing（应用/印刷）Applications/System（应用/系统）
->
-> Applications/Text （应用/文本）Development/Debuggers （开发/调试器）
->
-> Development/Languages （开发/语言）Development/Libraries （开发/函数库）
->
-> Development/System （开发/系统）Development/Tools （开发/工具）
->
-> Documentation （文档）System Environment/Base（系统环境/基础）
->
-> System Environment/Daemons （系统环境/守护）System Environment/Kernel （系统环境/内核）
->
-> System Environment/Libraries （系统环境/函数库）System Environment/Shells （系统环境/接口）
->
-> User Interface/Desktops（用户界面/桌面）User Interface/X （用户界面/X窗口）
->
-> User Interface/X Hardware Support （用户界面/X硬件支持）
-
- 
-
-8. Source：源程序软件包的名字。如 stardict-2.0.tar.gz。
-9. %description：软件包详细说明，可写在多个行上。
-
-### 7.2 %prep段
-
- 这个段是预处理段，通常用来执行一些解开源程序包的命令，为下一步的编译安装作准备。%prep和下面的%build，%install段一样，除了可以执行RPM所定义的宏命令（以%开头）以外，还可以执行SHELL命令，命令可以有很多行，如我们常写的tar解包命令。
-
-### 7.3 build段
-
-本段是建立段，所要执行的命令为生成软件包服务，如make 命令。
-
-### 7.4 %install段
-
-本段是安装段，其中的命令在安装软件包时将执行，如make install命令。
-
-### 7.5 %files段
-
-本段是文件段，用于定义软件包所包含的文件，分为三类--说明文档（doc），配置文件（config）及执行程序，还可定义文件存取权限，拥有者及组别。
-
-### 7.6 %changelog段 
-
-本段是修改日志段。你可以将软件的每次修改记录到这里，保存到发布的软件包中，以便查询之用。每一个修改日志都有这样一种格式：第一行是：* 星期 月 日 年 修改人电子信箱。其中：星期、月份均用英文形式的前3个字母，用中文会报错。接下来的行写的是修改了什么地方，可写多行。一般以减号开始，便于后续的查阅。
