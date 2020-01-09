@@ -76,6 +76,7 @@ mysql_secure_installation
  命令进行配置（先退出数据库）：
 
 ```bash
+
 首先是设置密码，会提示先输入密码
  
 Enter current password for root (enter for none):<–初次运行直接回车
