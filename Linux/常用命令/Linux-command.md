@@ -1027,7 +1027,7 @@ yum repolist enabled
 yum repolist all
 ```
 
-# 15、CentOS7设置笔记本合盖不休眠
+## 15、CentOS7设置笔记本合盖不休眠
 
 ### 找到配置文件
 
