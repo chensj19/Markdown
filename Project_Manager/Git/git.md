@@ -220,7 +220,62 @@ git branch --set-upstream-to origin/addFile
 git branch --unset-upstream
 ```
 
-### 关于Git每次进入都需要输入用户名和密码的问题
+## Git密码问题
+
+### fatal:Authentication failed fot 'http://xxxx.com'
+
+#### 1、修改全局配置**用户名** 和 **邮箱**；
+
+查询用户信息：
+
+```bash
+git config --list
+
+//查看一下你的信息修改的信息对不对
+user.name=yuhua
+user.email=xxx@xxx.com
+```
+
+如果不对就重新配置一下：
+
+```bash
+git config --global user.name [username]  如：git config --global user.name yh
+git config --global user.email [email]         如：git config --global user.email 111@163.com
+```
+
+#### 2、修改凭证(具体问题具体分析)；
+
+这个就坑了，这个是存在本机的，其实就跟浏览器保存密码道理一样。
+ 如图，进入【**凭据管理器**】：
+
+![img](git.assets/11160165-3d824bcc2a445dca.webp)
+
+
+ 点击进入【**windows凭据**】
+
+![img](git.assets/11160165-680335b50434933c.webp)
+
+
+
+在【**普通凭据**】一栏，找到你项目的托管平台地址,点击最后的小图标，可以展开信息：
+
+![img](git.assets/11160165-738364ba65d46e7a.webp)
+
+#### 3.重置和保存
+
+##### 3.1 重置
+
+```bash
+git config --system --unset credential.helper
+```
+
+##### 3.2 保存(避免每次都输入账号密码)
+
+```bash
+git config --global credential.helper store
+```
+
+### Git每次都需要输入用户名和密码
 
 首先，如果我们git clone的下载代码的时候是连接的https://而不是git@git (ssh)的形式，当我们操作git pull/push到远程的时候，总是提示我们输入账号和密码才能操作成功，频繁的输入账号和密码会很麻烦，也特别烦恼。
 
