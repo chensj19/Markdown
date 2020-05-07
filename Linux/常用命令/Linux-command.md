@@ -41,6 +41,10 @@
   * `zip jpg.zip *.jpg` 
 
     zip格式的压缩，需要先下载zip for [linux](http://lib.csdn.net/base/linux)
+    
+  * `tar zxvf h2.tar.gz * --exclude=backup`
+
+     打包去除指定目录
 
 * **tar解压**
 
