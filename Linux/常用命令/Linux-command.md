@@ -1074,5 +1074,6 @@ HandleLidSwitch=lock
 必须要使用如下命令才能使上面的配置生效
 
 ```shell
+
 systemctl restart systemd-logind
 ```
