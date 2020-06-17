@@ -252,7 +252,7 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
     minor version: 0
     major version: 52
     flags: ACC_PUBLIC, ACC_SUPER
-  Constant pool: // 常量
+  Constant pool: // 常量池
      #1 = Methodref          #3.#22         // java/lang/Object."<init>":()V
      #2 = Class              #23            // org/chen/jvm/ch01/StackStructorTest
      #3 = Class              #24            // java/lang/Object
@@ -334,7 +334,162 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
 2. class file加载到JVM中，被称之为DNA元数据模板，放在方法区中
 3. 在.class文件--> JVM -->最终成为元数据模板，此过程需要一个运输工具(类加载器 ClassLoader)，扮演一个快递员的角色
 
+#### 3.2.3 类加载过程
 
+* 简单说明
+
+![image-20200617200935043](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200617200935043.png)
+
+* 详细过程
+
+![image-20200617201012399](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200617201012399.png)
+
+### 3.3 类加载过程--Loading
+
+1. 通过一个类的全限定名获取定义此类的二进制字节流
+   1. 来源于文件系统
+   2. 来源于网络
+   3. 来源于zip包、jar、war
+   4. 运行时计算生成，使用最多的是动态代理技术
+   5. 由其他文件生成，比如jsp
+   6. 由专有数据库读取生成
+   7. 从加密文件获取，典型的是防class文件被反编译的保护措施
+2. 将这个字节流所代表的的静态存储结构转换为方法区**[永久代(~JDK7)、元数据(JDK8~)]**的运行时数据结构
+3. **在内存中生成一个代表此类的java.lang.Class对象**，作为方法区中这个类的各种数据的访问入口
+
+### 3.4 类加载过程--Linking
+
+#### 3.4.1 验证(Verify)
+
+* 目的在于确保Class文件的字节流中包含的信息符合当前虚拟机要求，保证被价值类的正确性，不会危害虚拟机的自身安全
+* 主要包含四种验证：文件格式验证、元数据验证、字节码验证、符号引用验证
+  * 比如class文件 二进制开头为 0xCAFF BABE
+
+#### 3.4.2 准备(Prepare)
+
+* 为类变量分配内存并设置该类变量的默认初始值，即零值
+* **这里不包含用final修饰的static，因为final在编译的时候已经分配了，准备阶段会显式初始化**
+* **这里不会为实例变量分配初始化**，类变量会分配在方法区中，而实例变量会随着对象一起分配到Java Heap中
+
+#### 3.4.3 解析(Resolve)
+
+* 将常量池内的符号引用[常量池]转换为直接引用的过程
+* 事实上，解析操作往往会伴随JVM执行完初始化后再执行
+* 符号引用就是一组符号来描述所引用的目标，符号引用的字面量形式明确定义在**Java虚拟机规范**的Class文件格式中，直接引用就是直接指向目标的指针，相对偏移量或一个间接定位到目标的句柄
+* 解析动作主要针对类或者接口、字段、类方法、方法类型等，对应常量池中的CONSTANT_Class_info,CONSTANT_Fieldref_info,CONSTANT_Methodref_info等
+
+### 3.5 类加载过程--Initialization
+
+* 初始化阶段就是执行类构造方法**<clinit>()**的过程
+
+  ```java
+  // class version 52.0 (52)
+  // access flags 0x21
+  public class org/chen/jvm/ch02/ClassInitTest {
+  
+    // compiled from: ClassInitTest.java
+  
+    // access flags 0xA
+    private static I num
+  
+    // access flags 0xA
+    private static I number
+  
+    // access flags 0x1
+    public <init>()V
+     L0
+      LINENUMBER 9 L0
+      ALOAD 0
+      INVOKESPECIAL java/lang/Object.<init> ()V
+      RETURN
+     L1
+      LOCALVARIABLE this Lorg/chen/jvm/ch02/ClassInitTest; L0 L1 0
+      MAXSTACK = 1
+      MAXLOCALS = 1
+  
+    // access flags 0x9
+    public static main([Ljava/lang/String;)V
+     L0
+      LINENUMBER 20 L0
+      GETSTATIC java/lang/System.out : Ljava/io/PrintStream;
+      GETSTATIC org/chen/jvm/ch02/ClassInitTest.num : I
+      INVOKEVIRTUAL java/io/PrintStream.println (I)V
+     L1
+      LINENUMBER 21 L1
+      GETSTATIC java/lang/System.out : Ljava/io/PrintStream;
+      GETSTATIC org/chen/jvm/ch02/ClassInitTest.number : I
+      INVOKEVIRTUAL java/io/PrintStream.println (I)V
+     L2
+      LINENUMBER 22 L2
+      RETURN
+     L3
+      LOCALVARIABLE args [Ljava/lang/String; L0 L3 0
+      MAXSTACK = 2
+      MAXLOCALS = 1
+  
+    // access flags 0x8 类构造方法
+    static <clinit>()V
+     L0
+      LINENUMBER 11 L0
+      ICONST_1
+      PUTSTATIC org/chen/jvm/ch02/ClassInitTest.num : I
+     L1
+      LINENUMBER 14 L1
+      BIPUSH 20
+      PUTSTATIC org/chen/jvm/ch02/ClassInitTest.number : I
+     L2
+      LINENUMBER 17 L2
+      BIPUSH 10
+      PUTSTATIC org/chen/jvm/ch02/ClassInitTest.number : I
+      RETURN
+      MAXSTACK = 1
+      MAXLOCALS = 0
+  }
+  ```
+
+* 此方法不需要定义，是javac编译器自动收集类中的所有类变量的赋值动作和静态代码块中的语句合并而来
+
+  * 如果不存在类变量的赋值和静态代码块则不会有类构造方法**<clinit>()**
+
+* 构造器方法中指令按照语句在源文件中出现的顺序执行
+
+  ```java
+    private static int num = 1;
+  
+      static {
+          number = 20;
+      }
+  
+      private static int number = 10; // prepare 0 init 20 --> 10
+  
+      public static void main(String[] args) {
+          System.out.println(num);
+          System.out.println(number);
+      }
+  // 字节码
+  static <clinit>()V
+     L0
+      LINENUMBER 11 L0
+      ICONST_1
+      PUTSTATIC org/chen/jvm/ch02/ClassInitTest.num : I
+     L1
+      LINENUMBER 14 L1
+      BIPUSH 20
+      PUTSTATIC org/chen/jvm/ch02/ClassInitTest.number : I
+     L2
+      LINENUMBER 17 L2
+      BIPUSH 10
+      PUTSTATIC org/chen/jvm/ch02/ClassInitTest.number : I
+      RETURN
+      MAXSTACK = 1
+      MAXLOCALS = 0
+  ```
+
+* **<clinit>()不同于类的构造方法**（从虚拟机角度来看，类的构造方法就是 <init>()方法）
+
+* 若该类具有父类，JVM会保证子类的**<clinit>()**执行前，父类的**<clinit>()**已经执行完毕
+
+* 虚拟机必须保证一个类的**<clinit>()**方法在多线程下被同步加锁的
 
 
 ## 4、运行时数据区
