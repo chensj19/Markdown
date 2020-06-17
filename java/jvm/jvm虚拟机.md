@@ -217,9 +217,9 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
   * 跨语言 全栈虚拟机
   * 支持不同语言中混用对方的接口和对象
 
-## 3、类加载子系统
+## 2、类加载子系统
 
-### 3.1 内存结构
+### 2.1 内存结构
 
 * **简图**
 
@@ -231,9 +231,9 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
 
   ![image-20200616221525570](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200616221525570.png)
 
-### 3.2 类加载器与类的加载过程
+### 2.2 类加载器与类的加载过程
 
-####  3.2.1  类加载器子系统作用
+####  2.2.1  类加载器子系统作用
 
 ![image-20200616222417933](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200616222417933.png)
 
@@ -326,7 +326,7 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
   ```
 
 
-#### 3.2.2 类加载器ClassLoader角色
+#### 2.2.2 类加载器ClassLoader角色
 
 ![image-20200616223606773](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200616223606773.png)
 
@@ -334,7 +334,7 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
 2. class file加载到JVM中，被称之为DNA元数据模板，放在方法区中
 3. 在.class文件--> JVM -->最终成为元数据模板，此过程需要一个运输工具(类加载器 ClassLoader)，扮演一个快递员的角色
 
-#### 3.2.3 类加载过程
+#### 2.2.3 类加载过程
 
 * 简单说明
 
@@ -344,7 +344,7 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
 
 ![image-20200617201012399](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200617201012399.png)
 
-### 3.3 类加载过程--Loading
+#### 2.2.4 类加载过程--Loading
 
 1. 通过一个类的全限定名获取定义此类的二进制字节流
    1. 来源于文件系统
@@ -357,28 +357,28 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
 2. 将这个字节流所代表的的静态存储结构转换为方法区**[永久代(~JDK7)、元数据(JDK8~)]**的运行时数据结构
 3. **在内存中生成一个代表此类的java.lang.Class对象**，作为方法区中这个类的各种数据的访问入口
 
-### 3.4 类加载过程--Linking
+#### 2.2.5 类加载过程--Linking
 
-#### 3.4.1 验证(Verify)
+##### 2.2.5.1 验证(Verify)
 
 * 目的在于确保Class文件的字节流中包含的信息符合当前虚拟机要求，保证被价值类的正确性，不会危害虚拟机的自身安全
 * 主要包含四种验证：文件格式验证、元数据验证、字节码验证、符号引用验证
   * 比如class文件 二进制开头为 0xCAFF BABE
 
-#### 3.4.2 准备(Prepare)
+##### 2.2.5.2 准备(Prepare)
 
 * 为类变量分配内存并设置该类变量的默认初始值，即零值
 * **这里不包含用final修饰的static，因为final在编译的时候已经分配了，准备阶段会显式初始化**
 * **这里不会为实例变量分配初始化**，类变量会分配在方法区中，而实例变量会随着对象一起分配到Java Heap中
 
-#### 3.4.3 解析(Resolve)
+##### 2.2.5.3 解析(Resolve)
 
 * 将常量池内的符号引用[常量池]转换为直接引用的过程
 * 事实上，解析操作往往会伴随JVM执行完初始化后再执行
 * 符号引用就是一组符号来描述所引用的目标，符号引用的字面量形式明确定义在**Java虚拟机规范**的Class文件格式中，直接引用就是直接指向目标的指针，相对偏移量或一个间接定位到目标的句柄
 * 解析动作主要针对类或者接口、字段、类方法、方法类型等，对应常量池中的CONSTANT_Class_info,CONSTANT_Fieldref_info,CONSTANT_Methodref_info等
 
-### 3.5 类加载过程--Initialization
+#### 2.2.6 类加载过程--Initialization
 
 * 初始化阶段就是执行类构造方法**<clinit>()**的过程
 
@@ -489,8 +489,128 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
 
 * 若该类具有父类，JVM会保证子类的**<clinit>()**执行前，父类的**<clinit>()**已经执行完毕
 
+  ```java
+  public class ClassInit01Test {
+  
+       static class Father {
+           public static int A = 1;
+           static {
+               A = 2;
+           }
+       }
+  
+       static class Son extends Father {
+           public static int B = 2 ;
+       }
+  
+      public static void main(String[] args) {
+          System.out.println(Son.B);
+      }
+  }
+  ```
+
 * 虚拟机必须保证一个类的**<clinit>()**方法在多线程下被同步加锁的
 
+  ```java
+  public class DeadThreadTest {
+  
+      public static void main(String[] args) {
+          Runnable r = () -> {
+              System.out.println(Thread.currentThread().getName() + "   开始初始化");
+              DeadThread thread = new DeadThread();
+              System.out.println(Thread.currentThread().getName() + "   初始化结束");
+          };
+          Thread t1 = new Thread(r, "T1");
+          Thread t2 = new Thread(r, "T2");
+          t1.start();
+          t2.start();
+      }
+  }
+  
+  
+  class DeadThread {
+      static {
+          // 初始化时候会被锁，导致其他线程无法访问
+          if (true) {
+              System.out.println(Thread.currentThread().getName() + "   DeadThread 开始初始化");
+              while (true) {
+              }
+          }
+      }
+  }
+  ```
+
+### 2.3 类加载器分类
+
+#### 2.3.1 类加载器简介
+
+* JVM支持两种类型的类加载器，一种是**引导类加载器(Bootstrap ClassLoader)**，一种是**自定义的类加载器(User-Defined ClassLoader)**
+
+  * 从概念上来说，自定义类加载器是程序开发人员自定义的一种类加载器，不是由Java虚拟机提供的，不存在于Java虚拟机规范中，而是**将所有派生于抽象类ClassLoader的类加载器都划分为自定义加载器，简单来说实现ClassLoader的类加载器都归属于自定义加载器**,下图中除了Bootstrap ClassLoader，其他的都是自定义类加载器
+
+  ![image-20200617234141884](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200617234141884.png)
+
+  > 上面这四种加载器之间的关系是包含关系，并不是上下层，也不是父子类的继承关系
+
+* 无论类加载器类型怎么划分，在程序中最常见的类加载器就只有三个
+
+  * Bootstrap ClassLoader
+  * Extension ClassLoader
+  * System/Application ClassLoader
+
+  ```java
+  public class ClassLoaderTest {
+      public static void main(String[] args) {
+          // 获取系统类加载器
+          ClassLoader systemClassloader = ClassLoader.getSystemClassLoader();
+          System.out.println(systemClassloader);
+          // 获取扩展类加载器,获取其上级类加载器
+          ClassLoader extClassLoader = systemClassloader.getParent();
+          System.out.println(extClassLoader);
+          // 获取扩展类加载器的上层 获取不到引导类加载器
+          ClassLoader bootstrap = extClassLoader.getParent();
+          System.out.println(bootstrap); // null
+  
+          // 用户自定义类来说它的类加载器是哪个？sun.misc.Launcher$AppClassLoader@18b4aac2
+          ClassLoader userClassLoader = ClassLoaderTest.class.getClassLoader();
+          System.out.println(userClassLoader);
+  
+          // string 类加载器是哪个  null --> Bootstrap ClassLoader 引导类加载器加载
+          // 系统核心类库都是使用引导类加载器加载
+          //
+          ClassLoader classLoader = String.class.getClassLoader();
+          System.out.println(classLoader); // null
+      }
+  }
+  ```
+
+#### 2.3.2 加载器说明
+
+##### 虚拟机自带加载器
+
+###### 启动类加载器 Bootstrap ClassLoader
+
+* 这个类是使用C/C++语言实现的，嵌套在JVM之中
+* 它是用来加载Java核心类库($JAVA_HOME/jre/lib/rt.jar、resources.jar或sun.boot.class.path路径下的内容)，用于提供JVM自身需要的类
+* 并不继承java.lang.ClassLoader，没有父加载器
+* 加载扩展类和应用程序类加载器，并指定其父类加载器
+* 出于安全考虑，Bootstrap启动类加载器只加载包名为java/javax/sun等开头的类
+
+###### 扩展类加载器 Extension ClassLoader
+
+* **Java语言编写**，由sun.misc.Launcher$ExtClassLoader实现
+* **派生于ClassLoader类**
+* 父类加载器为启动类加载器
+* 从**java.ext.dirs**系统属性所指定的目录中加载类库，或从**JDK安装目录jre/lib/ext**子目录下加载类库。**如果用户创建的jar放在此目录，也会由扩展类加载器加载**
+
+###### 系统/应用加载器 System/Application ClassLoader
+
+* **Java语言编写**，由sun.misc.Launcher$AppClassLoader实现
+* **派生于ClassLoader**
+* 父类加载器为Extension ClassLoader
+* 它负责加载**环境变量classpath**或者系统属性**java.class.path**指定路径下的类库
+* 该类加载器是程序中默认的类加载器，一般来说，Java应用的类都是由它完成加载
+* 通过ClassLoader#getSystemClassLoader()方法可以获取该类加载器
 
 ## 4、运行时数据区
 
