@@ -654,6 +654,23 @@ public class ClassLoader01Test {
   * 在JDK1.2之前，在自定义类加载器时，总会去继承ClassLoader并重写loadClass()方法，从而实现自定义的类加载器，但是在之后已不在建议用户去覆盖这个方法，而是建议把自定义的类加载逻辑写在findClass()方法中
   * 在编写自定义类加载器时，如果没有太过于复杂的需求，可以直接继承URLClassLoader类，这样可以避免自己去写findClass()方法及获取字节码流的方法，使自定义类加载器编写更加简洁
 
+#### 2.3.3 关于ClassLoader
+
+ClassLoader类，是一个抽象类，其后所有的类加载器都继承自这个类(不包含Boostrap ClassLoader)
+
+| 方法名称                                          | 方法说明                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------ |
+| getParent()                                       | 返回该类加载器的超类加载器                                   |
+| loadClass(String name)                            | 加载名称为name的类，返回结果为java.lang.Class类的实例        |
+| findClass(String name)                            | 查找名称为name的类，返回结果为java.lang.Class类的实例        |
+| findLoadedClass(String name)                      | 查找名称为name的已加载过的类，返回结果为java.lang.Class类的实例 |
+| defineClass(String name,byte[] b,int off,int len) | 把字节数组b中内容转换为一个Java类，返回结果为java.lang.Class类的实例 |
+| resolveClass(Class<?> c)                          | 连接指定的一个Java类                                         |
+
+![image-20200618222230371](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200618222230371.png)
+
+**sun.msic.Launcher**，它是一个Java虚拟机的入口应用
+
 ## 4、运行时数据区
 
 ## 5、执行引擎
