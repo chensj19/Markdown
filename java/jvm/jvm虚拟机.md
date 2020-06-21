@@ -8,6 +8,7 @@
 * 追求极客精神
   * 垃圾算法、JIT、底层原理
 
+
 ## 1.JVM和Java体系结构
 
 ### 1.1 Idea 插件 JProfile
