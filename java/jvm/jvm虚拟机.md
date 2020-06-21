@@ -672,6 +672,103 @@ ClassLoader类，是一个抽象类，其后所有的类加载器都继承自这
 
 **sun.msic.Launcher**，它是一个Java虚拟机的入口应用
 
+##### 获取ClassLoader
+
+* 获取当前类的ClassLoader
+
+  ```java
+  Class cls = Class.forName("java.lang.String");
+  ClassLoader loader = cls.getClassLoader(); // null
+  ```
+
+* 获取当期线程上下文的ClassLoader
+
+  ```java
+  Thread.currentThread.getContextClassloader()
+  ```
+
+* 获取系统ClassLoader
+
+  ```java
+  ClassLoader.getSystemClassLoader()
+  ```
+
+* 获取调用者的ClassLoader
+
+  ```java
+  DriverManager.getCallerClassLoader()
+  ```
+
+#### 2.3.4 双亲委派机制
+
+Java虚拟机对class文件采用的是**按需加载**的方式，也就是说当需要使用该类的时候才会将它的class问价加载到内存中生成class对象，而且加载某个类的class文件的时候，Java虚拟机采用的是**双亲委派模式**，就是把请求交由父类处理，它是一种任务委派模式。
+
+##### 工作原理
+
+1. 如果一个类加载器收到了类加载请求，它并不会自己先去加载，而是将这个请求委托给父类加载器去执行
+
+2. 如果父类加载器还存在父类加载器，则会继续向上委托，依次递归，请求最终到达顶层的启动类加载器
+
+3. 如果父类加载器完成了类加载任务，就成功返回；如果父类加载器未完成加载任务，则子类加载器才会自己尝试去加载，这就是双亲委派机制
+
+   ![image-20200621224510858](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200621224510858.png)
+
+   Jdbc 调用
+
+   ![image-20200621230002747](jvm%E8%99%9A%E6%8B%9F%E6%9C%BA.assets/image-20200621230002747.png)
+
+##### 双亲委派的优势
+
+* 避免类的重复加载
+* 保护程序安全，防止核心API被篡改
+  * 自定义类：java.lang.String
+
+##### 沙箱安全机制
+
+```java
+package java.lang;
+
+public class String {
+    static {
+        System.out.println("custom string");
+        System.out.println("custom string");
+    }
+
+    public static void main(String[] args) {
+        System.out.println("string");
+    }
+}
+```
+
+​		自己创一个自定义java.lang.String类，但是在加载自定义String类的时候会率先使用引导类加载器加载的，而引导类加载器在加载过程中会先加载jdk自带的文件，执行main方法的时候会报错没有main方法，即是因为使用的string类为rt.jar包中的String类。这种可以保证对Java核心源代码的保护，这就是**沙箱保护机制**
+
+### 2.4 其他
+
+* 在JVM 中表示两个class对象是否为同一个类必须具备两个必要条件
+  * 类的完整类名必须一致，包括包名
+  * 加载这个类的类加载器ClassLoader(ClassLoader对象)必须相同
+* 换句话说，在JVM中，即使两个类对象(class对象)来源于同一个class文件，被同一个虚拟机加载，但是只要它们的ClassLoader实例对象不同，那么两个类也是不相等的
+
+#### 对ClassLoader的引用
+
+​	JVM必须知道一个类是由启动类加载器加载(BootstrapClassLoader),还是用户类加载器加载的。如果一个类是由用户类加载器加载的，那么JVM会将**这个类加载器的一个引用作为类型信息的一部分存放在方法区中**。当解析一个类到另一个类的引用的时候，JVM需要保证两个类的类加载器是相同的
+
+#### 类的主动使用和被动使用
+
+Java中对类的使用分为主动使用和被动使用
+
+* 主动使用
+  * 创建类的实例
+  * 访问某个类或者接口的静态变量，或者对该静态变量赋值
+  * 调用类的静态方法
+  * 反射(Class.forName("xxx.xx"))
+  * 初始化一个类的子类
+  * Java虚拟机启动标明为启动类的类
+  * JDK 7开始提供动态语言支持
+    * java.lang.invoke.MethodHandler实例解析结果 REF_getStatic、REF_putStatic、REF_invokeStatic句柄对应的类没有初始化，则初始化
+* 被动使用
+  * 除了上述七种情况为，其他情况都被看作对**类的被动使用**，都**不会导致类的初始化**
+
 ## 4、运行时数据区
 
 ## 5、执行引擎
