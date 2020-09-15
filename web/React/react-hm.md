@@ -489,7 +489,7 @@ names = []
       </div>,
       document.getElementById("app")
     );
-    // 方案2 arrays.map
+    // 方案2√ arrays.map
     ReactDOM.render(
       <div>
         {strs.map(item => <h5>{item}</h5>)}
@@ -498,5 +498,210 @@ names = []
     );
     ```
     
-    
+
+#### 6.2.1 常用操作
+
+1. 在react中，需要把key添加到被forEach、map、for循环的元素
+2. 在jsx中推荐使用`{/*注释内容*/}`
+3. 为jsx中元素添加`class`类名：需要使用`className`来替换`class`;`htmlfor`替换`label`的`for`属性
+   * 主要是`class`和`for`在`react`中都是关键字
+4. 在jsx创建DOM的时候，所有节点必须有**唯一**的根元素进行包裹
+5. 在jsx语法中，标签必须成对出现，如果是单标签，则必须闭合
+
+> 在编译引擎编译jsx过程中，
+> 如果遇到`<`，那么就会把它当做html进行编译
+> 如果遇到`{`，就会把花括号内部的代码当做普通js进行编译
+
+## 7、组件创建
+
+### 7.1 基于构造函数组件创建
+
+> **使用构造函数来创建组件**，如果要接收外界传递的数据，需要在构造函数的参数列表中使用`props`来接收；
+> 必须要向外返回一个合法的jsx创建的虚拟DOM
+
+```jsx
+// 第一种创建组件
+function Hello () {
+    // 如果一个组件返回null，表明此组件为空，不渲染
+    // return null
+    // 必须要向外返回一个合法的jsx创建的虚拟DOM
+    return <h1>这是一个好</h1>
+}
+
+ReactDOM.render(
+  <div>
+    123
+    {/* 直接把组件以标签形式放在文件中即可 */}
+    <Hello></Hello>
+  </div>,
+  document.getElementById("app")
+);
+
+```
+
+1. 父组件向子组件传递数据
+
+   ```jsx
+   // 第一种创建组件
+   // 在构造函数中，使用props 接收参数
+   function Hello(props) {
+     // 如果一个组件返回null，表明此组件为空，不渲染
+     // return null
+     // 必须要向外返回一个合法的jsx创建的虚拟DOM
+     // 不论vue还是react，组件中props都是只读的，不能被重新赋值
+     return <h1>这是一个好 --- {props.name}</h1>;
+   }
+   const user = {
+     name: "tom",
+     age: 3,
+     gender: "熊",
+   };
+   ReactDOM.render(
+     <div>
+       123
+       {/* 直接把组件以标签形式放在文件中即可,使用组件，并为组件传递数据 */}
+       <Hello name={user.name} age={user.age} gender={user.gender}></Hello>
+     </div>,
+     document.getElementById("app")
+   );
+   ```
+
+2. 使用`{...obj}`属性扩散传递数据
+
+   >`...`三个点用于传参时可以看作是**Rest参数**的逆运算，将一个数组转为用逗号分隔的参数数组,就是说将参数数组展开了传入函数中。
+   >
+   >```javascript
+   >let a = [1,2,3]
+   >function f(x1,x2,x3){
+   >	...
+   >}
+   >f(...a) // 等价于 f(1,2,3)
+   >123
+   >```
+   >**Rest参数和arguments对象的区别：**
+   >
+   >- rest参数只包括那些没有给出名称的参数，arguments包含所有参数
+   >- arguments 对象不是真正的数组，而rest 参数是数组实例，可以直接应用sort, map, forEach, pop等方法
+   >- arguments 对象拥有一些自己额外的功能
+   >
+   >当用于函数形参时，后面就不能有其他参数，如下将会报错
+   >
+   >```javascript
+   >function func(a, ...b, c) {
+   >   // ...
+   >}
+   >// Rest parameter must be last formal parameter
+   >1234
+   >```
+   >
+   >使用三个点，在许多时候可以**代替数组的apply方法**
+   >
+   >```javascript
+   >// ES6以前
+   >Math.max.apply(null, [22, 2, 222])
+   >// ES6
+   >Math.max(...[22, 2, 222])
+   >//  等价于
+   >Math.max(22, 2, 222);
+   >```
+
+   ```jsx
+   // 多参数传递
+   const data = {
+     name: "tom1",
+     age: 31,
+     gender: "熊",
+   };
+   //  定义组件
+   function Demo(props) {
+       console.log(props);
+       return <h2>这是一个Demo</h2>;
+   }
+   
+   ReactDOM.render(
+     <div>
+       123
+       {/* 使用{...obj}方式传递参数 */}
+       <Demo {...data}></Demo>
+     </div>,
+     document.getElementById("app")
+   );
+   ```
+
+3. 将组件封装到单独的文件中
+
+   ```jsx
+   // HelloWorld.jsx
+   // 必须引入react
+   import React from "react"; // 创建组件、虚拟DOM、生命周期
+   
+   // 将组件封装到单独的文件中
+   function HelloWorld(props) {
+       // 如果一个组件返回null，表明此组件为空，不渲染
+       // return null
+       console.log(props)
+       // 必须要向外返回一个合法的jsx创建的虚拟DOM
+       // 不论vue还是react，组件中props都是只读的，不能被重新赋值
+       return <h1>这是一个好 --- {props.name}</h1>;
+     }
+   
+     export default HelloWorld
+   
+   // index.js
+   // 导入组件
+   // 默认，如果不做单独配置的话，.jsx后缀名不能省略
+   // 组件中必须导入react
+   import HelloWorld from "./components/HelloWorld.jsx";
+   
+   const user = {
+     name: "tom",
+     age: 3,
+     gender: "熊",
+   }
+   ReactDOM.render(
+     <div>
+       123
+       <HelloWorld {...user}></HelloWorld>
+     </div>,
+     document.getElementById("app")
+   )
+   ```
+
+4. 注意：组件名称必须是大写的
+
+5. 后缀名省略处理
+
+   ```js
+   // webpack.config.js
+   // Resolve配置webpack如何寻找模块对应的文件 
+   resolve: {
+     //  后缀名问题处理 表示 下面几个文件类型的后缀名会自动补全，可以不写
+     extensions: ['.js', '.jsx','.css', '.json'],
+   },
+   ```
+6. `@`符号使用
+   ```js
+   // webpack.config.js
+   // Resolve配置webpack如何寻找模块对应的文件 
+    // Resolve配置webpack如何寻找模块对应的文件
+     resolve: {
+       //  后缀名问题处理 表示 下面几个文件类型的后缀名会自动补全，可以不写
+       extensions: [".js", ".jsx", ".css", ".json"],
+      //  表示别名
+       alias: {
+         "@": path.join(__dirname, "./src"), // 这样就可以使用@表示src目录了
+       },
+     },
+   ```
+   
+### 7.2 基于class来组件创建
+
+> 使用**class**关键字来创建组件
+
+### 7.3 了解ES6中class关键字的作用
+
+1. class中`constructor`的基本使用
+2. 实例属性和实例方法
+3. 静态属性和静态方法
+4. 使用`extends`关键字实现继承
 
