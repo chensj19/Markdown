@@ -40,19 +40,20 @@ TypeScript 与JavaScript两者的特性对比，主要表现为以下几点：
 
    3. 安装@types/node,使用`npm install @types/node --dev-save`进行安装。这个主要是解决模块的声明文件问题。
 
-      ```js
+      ```cmd
       cnpm i @types/node -D
       ```
 
    4. 编写`HelloWorld.ts`文件，然后进行保存，代码如下。
 
-   ```livecodeserver
-   var a:string = "HelloWorld"console.log(a)
-   ```
-
+   ```typescript
+   var a:string = "HelloWorld"
+   console.log(a)
+```
+   
    1. 在Vscode的任务菜单下，打开运行生成任务，然后选择tsc：构建-tsconfig.json，这时候就会生成一个`helloWorld.js`文件
-   2. 在终端中输入`node helloWorld.js`就可以看到结果了。
-
+2. 在终端中输入`node helloWorld.js`就可以看到结果了。
+   
    **总结：**这节课虽然简单，但是小伙伴们一定要动手操作，如果不操作，或者开发环境配置不好，下面的课程就不好学习了。
 
 ## 3. 变量类型
