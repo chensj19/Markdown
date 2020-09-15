@@ -697,6 +697,8 @@ ReactDOM.render(
 ### 7.2 基于class来组件创建
 
 > 使用**class**关键字来创建组件
+> ES6 中 class关键字，是实现面向对象编程的新形式
+> 
 
 ### 7.3 了解ES6中class关键字的作用
 
