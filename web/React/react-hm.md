@@ -698,12 +698,218 @@ ReactDOM.render(
 
 > 使用**class**关键字来创建组件
 > ES6 中 class关键字，是实现面向对象编程的新形式
-> 
 
-### 7.3 了解ES6中class关键字的作用
+#### 7.2.1 了解ES6中class关键字的作用
 
 1. class中`constructor`的基本使用
-2. 实例属性和实例方法
-3. 静态属性和静态方法
-4. 使用`extends`关键字实现继承
 
+   ```js
+   class Animal {
+     // 这是类中的构造器
+     // 每一个类都有一个构造器，如果未指定，则是有一个默认的构造器
+     constructor(name, age, high) {
+       //  实例属性
+       this.name = name;
+       this.age = age;
+       this.high = high;
+     }
+   }
+   const a = new Animal("111", 12, 23232);
+   console.log(a.high);
+   ```
+
+2. 实例属性和静态属性
+
+   ```js
+   // 实例属性：通过new出来的实例，可以直接访问的属性
+   // 静态属性：通过构造函数直接访问的属性
+   function Person(name, age) {
+     this.name = name; // 实例属性
+     this.age = age;
+   }
+   
+   var p1 = new Person("aaa", 15);
+   
+   console.log(p1);
+   // 通过new出来的实例，可以直接访问的属性，叫做实例属性
+   console.log(p1.name);
+   // 通过构造函数直接访问的属性叫做静态属性
+   // info 属性，直接挂载给构造函数 静态属性
+   Person.info = 'bbbb'
+   
+   
+   // -------------------------------------------
+   console.log("-------------------------------------------");
+   // 创建了一个类
+   class Animal {
+     // 这是类中的构造器
+     // 每一个类都有一个构造器，如果未指定，则是有一个默认的构造器
+     constructor(name, age, high) {
+       //  实例属性
+       this.name = name;
+       this.age = age;
+       this.high = high;
+     }
+   
+     // 静态属性 在class内部通过static修饰的属性
+     static info = 'aaaa'
+   }
+   
+   const a = new Animal("111", 12, 23232);
+   console.log(a);
+   console.log(a.high);
+   console.log(Animal.info)
+   ```
+
+3. 实例方法和静态方法
+
+   ```js
+   // class 的实例方法和静态方法
+   function Person(name, age) {
+     this.name = name; // 实例属性
+     this.age = age;
+   }
+   var p1 = new Person("aaa", 15);
+   // info 属性，直接挂载给构造函数 静态属性
+   Person.info = 'bbbb'
+   // 通过prototype来指定实例方法
+   Person.prototype.say = function () {
+       console.log('Person say 实例方法');
+   }
+   // 这是实例方法
+   p1.say() 
+   
+   Person.show = function () {
+       console.log('Person show 静态方法');
+   }
+   // 这是静态方法
+   Person.show()
+   console.log(Person);
+   
+   // -------------------------------------------
+   console.log("-------------------------------------------");
+   // 创建了一个类
+   class Animal {
+     // 这是类中的构造器
+     // 每一个类都有一个构造器，如果未指定，则是有一个默认的构造器
+     constructor(name, age, high) {
+       //  实例属性
+       this.name = name;
+       this.age = age;
+       this.high = high;
+     }
+   
+     // 静态属性 在class内部通过static修饰的属性
+     static info = 'aaaa'
+     // 实例方法
+     sayHi() {
+       console.log('Animal sayHi 实例方法');
+     }
+   
+     static showHi(){
+       console.log('Animal showHi 静态方法');
+     }
+   
+   }
+   
+   const a = new Animal("111", 12, 23232);
+   // class Animal 实例方法 sayHi
+   a.sayHi()
+   console.log(a);
+   Animal.showHi()
+   ```
+
+4. `class` 关键字注意
+
+   1. `class`  {}中只能写构造器、静态属性、实例方法和静态方法
+   2. `class` 关键字内部还是使用原来的配方实现的，只是在语法层面上更加好理解一些，所以class关键字也被称之为语法糖
+      1. 静态方法和静态属性挂载在构造器上
+      2. 实例方法通过prototype挂载在原型上
+
+5. 使用`extends`关键字实现继承
+
+   ```js
+   console.log("-----------------子类调用父类方法------------------");
+   // 这是父类 可以把父类直接看成原型对象[prototype]
+   class Person {
+     constructor(name, age) {
+       this.name = name;
+       this.age = age;
+     }
+     // 公共实例方法
+     sayHi() {
+       console.log("大家好");
+     }
+   }
+   // 这是子类
+   // 在class中可以使用extends关键字实现父类继承子类
+   class American extends Person {
+     constructor(name, age, sex) {
+       // 调用父类构造方法
+       super(name, age);
+       // 特定的实例属性
+       this.sex = sex;
+     }
+     
+     // 重写实例方法
+     sayHi() {
+       // 调用父类实例方法
+       super.sayHi();
+       console.log("I'm " + this.name);
+     }
+     // 特定的实例方法
+     showMe() {
+       console.log(
+         "I'm " + this.name + ",age:" + this.age + ",sex:" + this.sex
+       );
+     }
+   }
+   
+   const a1 = new American("Jack", 20, "male");
+   console.log(a1);
+   a1.sayHi();
+   a1.showMe()
+   
+   // 这是子类
+   class Chinese extends Person {
+     constructor(name, age, gender) {
+       // 调用父类构造方法
+       super(name, age);
+       this.gender = gender;
+     }
+     sayHi() {
+       // 调用父类实例方法
+       super.sayHi();
+       console.log("我是" + this.name);
+     }
+   
+     show() {
+       console.log(
+         "我是" + this.name + ",年龄" + this.age + ",性别：" + this.gender
+       );
+     }
+   }
+   
+   const c1 = new Chinese("zs", 20, "雄");
+   console.log(c1);
+   c1.sayHi();
+   c1.show();
+   
+   console.log("------------------------------------------------");
+   ```
+
+#### 7.2.2 基于class创建组件
+
+1. 基本组件结构
+
+   ```js
+   
+   ```
+
+### 7.3 两种创建方式对比
+
+1. 用**构造函数**创建出来的组件，叫做"无状态组件"
+2. 用**class关键字**创建出来的组件，叫做"有状态组件"
+3. 两种组件应该用在什么情况下？
+
+> 无状态组件和有状态组件之间的**本质差别**就是：有无state属性
