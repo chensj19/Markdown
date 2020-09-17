@@ -946,3 +946,143 @@ ReactDOM.render(
 
 > 无状态组件和有状态组件之间的**本质差别**就是：有无state属性和有无生命周期函数
 
+
+
+
+
+## 8、css样式表作用问题
+
+### 8.1 css 模块化
+
+1. 配置css模块化
+
+   `webpack.conf.js`
+
+   ```js
+   module: {
+       // 第三方匹配规则
+       rules: [
+         { test: /\.js|.jsx$/, use: "babel-loader", exclude: /node_modules/ }, // 千万不要忘记exclude排除项node_modules
+         // ?modules 为普通css文件启动css模块化，只在css-loader有用
+         { test: /\.css$/, use: ["style-loader","css-loader?modules"]} // css打包第三方loader  
+       ],
+     },
+   ```
+
+2. 模块中使用模块指定类名
+
+   ```jsx
+   // 样式表在全局生效的 在vue中可以scoped来限制
+   // 在react使用通过将css模块化
+   import css from '@/css/style'
+   {/*css 模块化*/} 
+   <h2 className={css.h2_content}>这是评论列表</h2>
+   ```
+
+### 8.2 使用`localIdentName`执行生成的类名格式
+
+可选参数有
+
+* [path] : 表示样式表`相对于根的目录`所在路径
+
+* [name]：表示样式表文件名称
+
+* [local]：表示样式表的类定义名称
+
+* [hash:length]：表示32位hash值
+
+* 举例
+
+  ```js
+  module: {
+      // 第三方匹配规则
+      rules: [
+        { test: /\.js|.jsx$/, use: "babel-loader", exclude: /node_modules/ }, // 千万不要忘记exclude排除项node_modules
+        { test: /\.css$/, use: [
+          {
+            loader: "style-loader"
+          },
+          // css打包第三方loader  ?modules 为普通css文件启动css模块化，只在css-loader有用
+          {
+            loader: "css-loader",
+            options: {
+              modules: {
+                localIdentName: "[path][name]-[local]-[hash:5]"
+              }
+            }
+          }
+        ]} 
+      ],
+    },
+  ```
+
+### 8.3 `:global` 和`:local`
+
+* `:local()`包裹的类名，是会被模块化的类名，只能通过`className={css.h2_content}`来使用，同时`:local`也可以不写，默认在样式表中 定义的类名，都会被模块化
+* `:global()`包裹的类名，会全局生效，不会受到css-loader?modules的影响，定义类名是什么，就直接使用`className="类名"`
+
+> 只有.xxx类选择器和ID选择器才会被模块化控制，针对于元素的标签选择器，不会被模块化
+
+
+
+### 8.4 scss和less文件模块化
+
+1. 安装loader
+
+   ```bash
+   cnpm i url-loader file-loader -D
+   cnpm i sass-loader node-sass -D
+   cnpm i bootstrap@3.3.7 -D
+   ```
+
+2. 配置loader 
+
+   ```js
+    // 图片加载
+   {
+     test: /\.(png|jpg|gif)$/,
+       use: [
+         {
+           loader: "url-loader",
+           options: {
+             name: "images/[name].[ext]",
+             limit: 1000, //是把小于1000B的文件打成Base64的格式，写入JS
+           },
+         },
+       ],
+   },
+     // 字体加载
+     {
+       test: /\.(woff|svg|eot|woff2|tff|ttf)$/,
+         use: "url-loader",
+     },
+   ```
+
+3. 使用
+
+   ```jsx
+   import React from "react";
+   
+   import CmtList from '@/components/CmtList'
+   import bootcss from 'bootstrap/dist/css/bootstrap.min.css'
+   // 输出模块化的各个子项信息 用于后面查询调用
+   console.log(bootcss)
+   class Demo02 extends React.Component {
+       constructor(props){
+           super(props)
+       }
+   
+       render () {
+          return <div>
+              <button className={bootcss['btn-primary']}>添加</button>
+              <button className={bootcss['btn-warning']}>删除</button>
+              <CmtList />
+              </div>
+       }
+   }
+   
+   export default Demo02
+   ```
+
+   
+
