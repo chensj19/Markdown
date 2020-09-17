@@ -903,13 +903,46 @@ ReactDOM.render(
 1. 基本组件结构
 
    ```js
+   import React from "react";
    
+   class DemoIndex extends React.Component {
+     constructor(props) {
+       super(props);
+       console.log(props);
+     }
+     render() {
+       return <div>这是一个 class 创建组件</div>;
+     }
+   }
+   
+   export default DemoIndex;
    ```
 
 ### 7.3 两种创建方式对比
 
+> 使用class关键字创建的组件有自己的私有数据(this.state)和生命周期函数
+>
+> 使用function创建的组件，只有props，没有自己私有数据和生命周期函数
+
 1. 用**构造函数**创建出来的组件，叫做"无状态组件"
+
 2. 用**class关键字**创建出来的组件，叫做"有状态组件"
+
 3. 两种组件应该用在什么情况下？
 
-> 无状态组件和有状态组件之间的**本质差别**就是：有无state属性
+   1. 如果存在私有数据，则推荐使用class创建组件
+   2. 如果组件不需要私有数据，则推荐使用function创建组件
+   3. React官方说：无状态组件，由于没有state和生命周期函数，运行效率高于有状态组件
+
+4. 组件中props和state/data的区别
+
+   1. 数据来源
+
+      1. props是外界传输过来的
+      2. state/data都是组件私有的，一般都是通过ajax获取的
+2. 数据属性
+   1. props中的数据都是只读属性
+   2. state/data中数据都是可读可写的
+
+> 无状态组件和有状态组件之间的**本质差别**就是：有无state属性和有无生命周期函数
+
