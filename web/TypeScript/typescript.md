@@ -46,13 +46,12 @@ TypeScript 与JavaScript两者的特性对比，主要表现为以下几点：
 
    4. 编写`HelloWorld.ts`文件，然后进行保存，代码如下。
 
-   ```typescript
-   var a:string = "HelloWorld"
-   console.log(a)
-```
-   
-   1. 在Vscode的任务菜单下，打开运行生成任务，然后选择tsc：构建-tsconfig.json，这时候就会生成一个`helloWorld.js`文件
-2. 在终端中输入`node helloWorld.js`就可以看到结果了。
+      ```typescript
+      var a:string = "HelloWorld"
+      console.log(a)
+      ```
+   5. 在Vscode的任务菜单下，打开运行生成任务，然后选择tsc：构建-tsconfig.json，这时候就会生成一个`helloWorld.js`文件
+   6. 在终端中输入`node helloWorld.js`就可以看到结果了。
    
    **总结：**这节课虽然简单，但是小伙伴们一定要动手操作，如果不操作，或者开发环境配置不好，下面的课程就不好学习了。
 
@@ -60,7 +59,7 @@ TypeScript 与JavaScript两者的特性对比，主要表现为以下几点：
 
 TypeScript中的数据类型有：
 
-- Undefined :
+- Undefined :未定义
 - Number:数值类型;
 - string : 字符串类型;
 - Boolean: 布尔类型；
@@ -80,7 +79,9 @@ TypeScript中的数据类型有：
 新建demo01.ts文件，下入下面代码：
 
 ```typescript
-//声明数值类型的变量age，但不予赋值var age:numberconsole.log(age)
+//声明数值类型的变量age，但不予赋值
+var age:number
+console.log(age)
 ```
 
 写完后保存代码，进行运行任务，然后生成demo01.js，在终端中使用`node demo01.js`来进行查看运行结果。控制台输出了`undefined`,跟我们预想的一模一样。
@@ -92,10 +93,10 @@ TypeScript中的数据类型有：
 新建一个文件demo01_1.ts文件，写入下面代码：
 
 ```typescript
-var age:number = 18
-var stature:number = 178.5
-console.log(age)
-console.log(stature)
+  var age:number = 18
+  var stature:number = 178.5
+  console.log(age)
+  console.log(stature)
 ```
 
 然后执行转换，查看结果，我们可以在控制台看到结果已经顺利输出，没有任何意外。
@@ -116,7 +117,6 @@ demo01_2.ts
 var jspang:string = "技术胖 jspang.com"
 console.log(jspang)
 ```
-
 这时候控制图就会乖乖的输出`技术胖 jspang.com`.
 
 ### boolean布尔类型
@@ -163,7 +163,7 @@ t = true
 console.log(t)
 ```
 
-Null类型：
+### Null类型：
 
 与 Undefined 类似，都代表空。Null 代表是引用类型为空。意义不大，但是有用。后续学习中会使用到。
 
