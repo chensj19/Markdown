@@ -98,3 +98,32 @@ Thanks for using this script to fix CJK Input Method problem of SublimeText 2/3.
 Re-login your X windows and start to use SublimeText 2/3 with Fcitx!
 ```
 
+## sublime3 卡顿
+
+### 启动卡顿
+
+```json
+{
+"update_check": false,
+"font_size": 10,
+"draw_white_space": "all",
+"word_wrap": false,
+"spell_check": false,
+"auto_indent": true,
+"highlight_line": true,
+"match_selection": true,
+"translate_tabs_to_spaces": false,
+"tab_size": 4,
+"smart_indent": true,
+"detect_indentation": true
+}
+```
+
+### 编辑卡顿
+
+"Sublime > Preferences > Package settings > GitGutter > Settings - User"
+
+```json
+{ "non_blocking" : "true", "live_mode" : "false" }
+```
+
