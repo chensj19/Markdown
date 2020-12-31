@@ -435,6 +435,7 @@ https://www.baidu.com/
 sed -i 's/updates.jenkins.io/mirrors.tuna.tsinghua.edu.cn\/jenkins\/updates/g' hudson.model.UpdateCenter.xml
 sed -i 's/www.google.com/www.baidu.com/g' default.json
 sed -i 's/updates.jenkins-ci.org\/download/mirrors.tuna.tsinghua.edu.cn\/jenkins/g' default.json
+sed -i 's/updates.jenkins.io\/download/mirrors.tuna.tsinghua.edu.cn\/jenkins/g' default.json
 https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json
 ```
 
