@@ -6,3 +6,5 @@ mv /etc/yum.repos.d/epel-testing.repo /etc/yum.repos.d/epel-testing.repo.backup
 sed -i "s/#baseurl/baseurl/g" /etc/yum.repos.d/epel.repo
 sed -i "s/metalink/#metalink/g" /etc/yum.repos.d/epel.repo
 sed -i "s@https\?://download.fedoraproject.org/pub@https://mirrors.huaweicloud.com@g" /etc/yum.repos.d/epel.repo
+yum clean all
+yum makecache
