@@ -580,25 +580,33 @@ wget ftp://ftpuser:123456@172.16.9.242/scripts/ansible/common/jar/ansible.zip
 
 ## 6、设置固定IP
 
-动态ip网络配置可参考我的另一篇博文<http://www.cnblogs.com/albertrui/p/7811868.html>
+![img](Linux-command.assets/1266222-20190103175548898-1806442302.png)
 
-1、编辑/etc/sysconfig/network-scripts/ifcfg-ens33 ，
+```bash
+# vi /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE="Ethernet"
+PROXY_METHOD="none"
+BROWSER_ONLY="no"
+BOOTPROTO="static"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="ens33"
+UUID="b8a3eb1d-b5b7-4e48-829e-ab300767e0ac"
+DEVICE="ens33"
+ONBOOT="yes"
+IPADDR="192.168.31.203"
+BROADCAST="192.168.31.255"
+NETMASK=255.255.255.0
+GATEWAY=192.168.31.1
+DNS1=114.114.114.114
+```
 
-​     使用的命令为 `$>sudo  vi  /etc/sysconfig/network-scripts/ifcfg-ens33`
 
-1.1 修改`BOOTPROTO=static`
-
-1.2 修改或添加`IPADDR=192.168.6.120`
-
-(这个根据自己的情况 而定，我的主机的ip是192.168.6.111， 所以我的这个ip可以设置为192.168.6.（1~255之间的，但不能和宿主机的ip重复）)
-
-1.3 修改 或添加`GATEWAY=192.168.6.1`（这个是根据主机的默认网关一致的）
-
-1.4 修改 或添加`ONBOOT="yes"`
-
-1.5 修改 或添加`DNS1=8.8.8.8`,也可以多写几个依次为DNS2,DNS3，
-
- 常用的多是`114.114.114.114`或者`8.8.8.8`或者`8.8.4.4`等
 
 ## 7、CentOS 修改主机名
 
