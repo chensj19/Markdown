@@ -10,7 +10,8 @@ disk_min_size=100
 ssh_port=22
 # 需要安装的基础软件包
 #base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp jdk vsftpd docker-ce docker-ce-cli containerd.io mariadb'
-base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp vsftpd'
+#base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp vsftpd'
+base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools bc ntp vsftpd'
 
 # 获取本机IP
 local_ip=$(ip a | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d '/')
@@ -192,7 +193,7 @@ fi
 # 运行用户配置
 config_running_user () {
 echo '---' > user_info.txt
-for user in winning winsupport ftpuser; do
+for user in winning winsupport ftpuser oracle; do
   if ! id $user > /dev/null 2>&1 ; then
     # 生成一个只用左手就能输入的8位密码
     user_pass=$(</dev/urandom tr -dc '12345!@#$%qwertQWERTasdfgASDFGzxcvbZXCVB' | head -c8 ; echo)
@@ -202,6 +203,11 @@ for user in winning winsupport ftpuser; do
          echo "/usr/sbin/nologin" >> /etc/shells
          mkdir -p /home/vsftpd/{pro,product_list}
          chmod -R 777 /home/vsftpd
+      ;;
+      oracle) 
+         groupadd oinstall
+         groupadd dba
+         useradd -g oinstall -G dba -m oracle
       ;; 
       *) useradd $user
     esac
@@ -305,8 +311,21 @@ echo '
 * hard nproc 808888
 * hard nofile 808888
 * soft sigpending 199999
-* hard sigpending 199999' >> /etc/security/limits.conf
+* hard sigpending 199999
+oracle  soft  nproc  2047
+oracle  hard  nproc  16384
+oracle  soft  nofile  1024
+oracle  hard  nofile  65536
+oracle soft core unlimited
+oracle hard core unlimited
+oracle soft memlock 50000000
+oracle hard memlock 50000000' >> /etc/security/limits.conf
 sed -i 's/4096/808888/' /etc/security/limits.d/20-nproc.conf
+fi
+login_exists=$(cat /etc/pam.d/login | grep 'pam_limits.so')
+if [ -z "$login_exists" ]; then
+echo '
+session    required    pam_limits.so'>> /etc/pam.d/login
 fi
 
 # config sshd_config
@@ -354,9 +373,20 @@ sys_conf_sysctl=/etc/sysctl.conf
 sys_kernel_config_exists=$(cat $sys_conf_sysctl | grep 'vm.max_map_count')
 if [ -z "$sys_kernel_config_exists" ]; then
 echo '
-net.core.somaxconn = 32768
+vm.max_map_count = 655300
+net.ipv4.ip_local_port_range= 9000 65500
+fs.file-max = 6815744
+kernel.shmall = 10523004
+kernel.shmmax = 6465333657
+kernel.shmmni = 4096
 kernel.pid_max = 65536
-vm.max_map_count = 655300' >> $sys_conf_sysctl
+kernel.sem = 250 32000 100 128
+net.core.rmem_default=262144
+net.core.wmem_default=262144
+net.core.rmem_max=4194304
+net.core.wmem_max=1048576
+net.core.somaxconn = 32768
+fs.aio-max-nr = 1048576' >> $sys_conf_sysctl
 #sysctl -p > /dev/null 2>&1
 sysctl -p
 fi
@@ -378,7 +408,7 @@ esac
 # -------- 脚本执行入口 --------- #
 #yum_source_config
 install_base_pkgs
-config_ansible
+#config_ansible
 config_ftp_server
 config_ntp_server
 #config_docker
