@@ -10,7 +10,8 @@ disk_min_size=100
 ssh_port=22
 # 需要安装的基础软件包
 #base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp jdk vsftpd docker-ce docker-ce-cli containerd.io mariadb'
-base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp vsftpd'
+#base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp vsftpd'
+base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools bc ntp vsftpd'
 
 # 获取本机IP
 local_ip=$(ip a | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d '/')
@@ -378,7 +379,7 @@ esac
 # -------- 脚本执行入口 --------- #
 #yum_source_config
 install_base_pkgs
-config_ansible
+#config_ansible
 config_ftp_server
 config_ntp_server
 #config_docker
