@@ -37,3 +37,34 @@ cd ~/.cache/node-gyp
 mv node-v14.15.3 14.15.3
 ```
 
+## 2、复制node_modules后由于node-sass版本导致无法编译
+
+```
+npm rubuid node-sass 失败
+```
+
+处理方案
+
+```bash
+ rm -rf node_modules/node-gyp
+ npm install node-sass  --registry https://registry.npm.taobao.org --unsafe-perm=true --allow-root
+```
+
+## 3、包缺失
+
+### 3.1 自己推送
+
+从https://registry.npm.taobao.org/body-parser下载包到本地，然后解压，推送上私服
+
+```bash
+tar zxvf xxx.tgz
+# package 就是需要推送的内容
+npm publish package --registry  http://nexus.winning.com.cn:8081/repository/npm/
+```
+
+### 3.2 使用淘宝源安装
+
+```bash
+npm i safer-buffer --registry https://registry.npm.taobao.org
+```
+
