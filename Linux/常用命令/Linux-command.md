@@ -1087,3 +1087,12 @@ HandleLidSwitch=lock
 
 systemctl restart systemd-logind
 ```
+
+## 16、常用命令
+
+### 16.1 统计空间大小
+
+```bash
+du -sh
+```
+
