@@ -218,6 +218,14 @@ Java虚拟机的启动时依赖引导类加载器(Bootstrap Class Loader)创建�
   * 跨语言 全栈虚拟机
   * 支持不同语言中混用对方的接口和对象
 
+## 2、Class File 格式
+
+* 二进制字节流
+* 数据类型：u1 u2 u4 u8和_info(表类型)
+  * _info的来源是Hotspot源码中的写法
+* 查看16进制格式的class文件
+* class file文件构成
+
 ## 2、类加载子系统
 
 ### 2.1 内存结构
