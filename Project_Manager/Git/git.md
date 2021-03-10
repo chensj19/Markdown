@@ -290,3 +290,14 @@ git config --global credential.helper store
 然后你会在你本地生成一个文本，上边记录你的账号和密码。当然这些你可以不用关心。
 
 然后你使用上述的命令配置好之后，再操作一次git pull，然后它会提示你输入账号密码，这一次之后就不需要再次输入密码了。
+
+## git删除本地分支重新更新
+
+```
+git checkout master
+git branch -D wxpdev
+git checkout -b wxpdev
+git pull origin wxpdev
+git branch --set-upstream-to origin/wxpdev
+```
+
