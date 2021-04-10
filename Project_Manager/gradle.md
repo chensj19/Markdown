@@ -144,3 +144,25 @@ set GRADLE_OPTS="-Dgradle.user.home=D:\Android\.gradle"
 ![img](https://img-blog.csdn.net/20180413190618936?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
 ![img](https://img-blog.csdn.net/20180413190745785?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2dpdGh1Yl8zODYxNjAzOQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+## 构建加速
+
+```bash
+# $GRADLE_USER_HOME在未设置情况是用户目录下.gradle文件夹
+# 已设置环境变量则不需要替换，未设置请先替换
+vim $GRADLE_USER_HOME/gradle.properties
+# 添加如下内容
+#使用配置需求
+org.gradle.configureondemand=true
+#使用gradle daemon
+org.gradle.daemon=true
+# 模块化项目和并行化编译
+org.gradle.parallel=true
+```
+
+```bash
+# -x 表示跳过不需要执行的任务
+# --dry-run 查看所有在编译中将被执行的所有任务担忧不想执行它们
+./gradlew build -x checkstyleMain -x test --dry-run
+```
+
