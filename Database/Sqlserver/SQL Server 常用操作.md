@@ -195,4 +195,14 @@ col_length(objname,colname) 列长度
 valid_name(char_expr) 是否是有效标识符
 ```
 
+### 修改数据库类型，无法放置锁
+
+```sql
+declare @kill varchar(8000) = '';
+select @kill=@kill+'kill '+convert(varchar(5),spid)+';'
+from master..sysprocesses
+-- win60 替换为需要修改的数据库名称
+where dbid=db_id('win60');
+exec (@kill);
+```
 
