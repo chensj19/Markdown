@@ -2,6 +2,8 @@
 
 
 
+
+
 # Mariadb 
 
 ## CentOS 安装
@@ -133,8 +135,8 @@ CREATE DATABASE win_log default character set utf8mb4 collate utf8mb4_unicode_ci
 ### 创建用户
 
 ```bash
-create user winning@'%' identified by 'Maria@win60.DB';
-grant all privileges on *.* to winning@'%' identified by 'Maria@win60.DB';
+create user winning@'172.16.%。%' identified by 'Maria@win60.DB';
+grant all privileges on *.* to winning@'172.16.%。%' identified by 'Maria@win60.DB';
 flush privileges;
 ```
 
