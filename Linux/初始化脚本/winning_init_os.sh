@@ -1,7 +1,15 @@
 #!/bin/bash
 #
 local_dir=$(pwd)
-winning_rpm_pkgs=$(find $local_dir -name 'winning_rpm*.tar')
+curl -o win60_yum_pkgs.tar http://121.196.37.116/source/init_system/win60_yum_pkgs.tar
+curl -o data.zip http://121.196.37.116/source/db/data.zip
+curl -o databases.zip http://121.196.37.116/source/db/databases.zip
+curl -o decople.zip http://121.196.37.116/source/db/decople.zip
+curl -o fhir-register.zip http://121.196.37.116/source/db/fhir-register.zip
+curl -o fhir-drug.zip http://121.196.37.116/source/db/fhir-drug.zip
+curl -o win60_register.zip http://121.196.37.116/source/db/win60_register.zip
+curl -o win60_dcs.zip http://121.196.37.116/source/db/win60_dcs.zip
+winning_rpm_pkgs=$(find $local_dir -name 'win60_yum_pkgs*.tar')
 pkgs_dir=/data
 
 # 磁盘大小最低要求(单位GB)低于指定大小将退出
@@ -10,8 +18,7 @@ disk_min_size=100
 ssh_port=22
 # 需要安装的基础软件包
 #base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp jdk vsftpd docker-ce docker-ce-cli containerd.io mariadb'
-#base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp vsftpd'
-base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools bc ntp vsftpd'
+base_pkgs='vim dos2unix unzip ntpdate htop bc rsync lrzsz crontabs iftop telnet traceroute sysstat net-tools ansible bc ntp jdk mariadb'
 
 # 获取本机IP
 local_ip=$(ip a | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1 -d '/')
@@ -35,8 +42,8 @@ Echo_Green() {
 # 将本机配置为yum源
 yum_source_config () {
 Echo_Purple "将本机配置为yum源"
-\cp ./winning_ansible/role/public/.main.bak ./winning_ansible/role/public/main.yml
-sed -i "s/YUM_SOURCE_IP/$local_ip/" ./winning_ansible/role/public/main.yml
+#\cp ./winning_ansible/role/public/.main.bak ./winning_ansible/role/public/main.yml
+#sed -i "s/YUM_SOURCE_IP/$local_ip/" ./winning_ansible/role/public/main.yml
 yum_repos_dir=/etc/yum.repos.d
 yum_bakcup_dir=$yum_repos_dir/backup
 [[ ! -d $yum_bakcup_dir ]] && mkdir -p $yum_bakcup_dir
@@ -193,7 +200,7 @@ fi
 # 运行用户配置
 config_running_user () {
 echo '---' > user_info.txt
-for user in winning winsupport ftpuser; do
+for user in winning winsupport; do
   if ! id $user > /dev/null 2>&1 ; then
     # 生成一个只用左手就能输入的8位密码
     #user_pass=$(</dev/urandom tr -dc '12345!@#$%qwertQWERTasdfgASDFGzxcvbZXCVB' | head -c8 ; echo)
@@ -405,10 +412,10 @@ esac
 }
 
 # -------- 脚本执行入口 --------- #
-#yum_source_config
+yum_source_config
 install_base_pkgs
-#config_ansible
-config_ftp_server
+config_ansible
+#config_ftp_server
 config_ntp_server
 #config_docker
 #check_disk_size
