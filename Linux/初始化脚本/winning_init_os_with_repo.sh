@@ -1,16 +1,9 @@
 #!/bin/bash
 #
 local_dir=$(pwd)
-curl -o win60_yum_pkgs.tar http://121.196.37.116/source/init_system/win60_yum_pkgs.tar
-curl -o data.zip http://121.196.37.116/source/db/data.zip
-curl -o databases.zip http://121.196.37.116/source/db/databases.zip
-curl -o decople.zip http://121.196.37.116/source/db/decople.zip
-curl -o fhir-register.zip http://121.196.37.116/source/db/fhir-register.zip
-curl -o fhir-drug.zip http://121.196.37.116/source/db/fhir-drug.zip
-curl -o win60_register.zip http://121.196.37.116/source/db/win60_register.zip
-curl -o win60_dcs.zip http://121.196.37.116/source/db/win60_dcs.zip
 winning_rpm_pkgs=$(find $local_dir -name 'win60_yum_pkgs*.tar')
 pkgs_dir=/data
+base_url=http://172.17.0.168/yum/
 
 # 磁盘大小最低要求(单位GB)低于指定大小将退出
 disk_min_size=100
@@ -37,6 +30,30 @@ Echo_Red()
 }
 Echo_Green() {
     echo $(Color_Text "$1" "32")
+}
+
+# 配置yum源
+yum_config () {
+Echo_Purple "将本机配置为yum源"
+#\cp ./winning_ansible/role/public/.main.bak ./winning_ansible/role/public/main.yml
+#sed -i "s/YUM_SOURCE_IP/$local_ip/" ./winning_ansible/role/public/main.yml
+yum_repos_dir=/etc/yum.repos.d
+yum_bakcup_dir=$yum_repos_dir/backup
+[[ ! -d $yum_bakcup_dir ]] && mkdir -p $yum_bakcup_dir
+[[ -f $yum_repos_dir/winning.repo ]] && rm -f $yum_repos_dir/winning.repo
+find_old_repo=$(find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo' | grep -v winning)
+if [ ! -z "$find_old_repo" ]; then
+  mv $find_old_repo $yum_bakcup_dir/
+fi
+cat << EOF > $yum_repos_dir/winning.repo
+[localrepo]
+baseurl=$base_url
+gpgcheck=0
+enabled=1
+gpgcheck=0
+priority=1
+name = local repository
+EOF
 }
 
 # 将本机配置为yum源

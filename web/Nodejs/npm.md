@@ -64,4 +64,34 @@ npm是node的**包管理工具**，是**前端模块化**下的一个标志性�
 
 评价：这是网上经常能够看到的解决方式，但，官方教程里没有对此有任何提及。chmod代表change mode更改读写模式，对该目录授予最高权限，任何人可读可写，这是很危险的
 
- 
+##  package 升级
+
+```bash
+$ npm install -g npm-check-updates
+# 或者
+$ cnpm install -g npm-check-updates
+```
+
+ncu 是 npm-check-updates 的缩写命令 
+
+输入ncu命令，可以看到需要升级安装包
+
+```bash
+# 查看更新
+ ncu 
+```
+
+![img](npm.assets/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3NpbmF0XzM2NzI4NTE4,size_16,color_FFFFFF,t_70.png)
+
+可以看到有好几个包要更新
+
+```bash
+# 查看所有ncu命令
+ncu -h
+# 更新
+ncu -a 
+# 更新 更新package.json 
+ncu -u
+```
+
+![img](npm.assets/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3NpbmF0XzM2NzI4NTE4,size_16,color_FFFFFF,t_70-20210826212612781.png)
