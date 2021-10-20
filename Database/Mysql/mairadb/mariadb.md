@@ -135,8 +135,8 @@ CREATE DATABASE win_log default character set utf8mb4 collate utf8mb4_unicode_ci
 ### 创建用户
 
 ```bash
-create user winning@'192.168.31.%' identified by 'Maria@win60.DB';
-grant all privileges on *.* to winning@'192.168.31.%' identified by 'Maria@win60.DB';
+create user winning@'172.17.*.*' identified by 'Maria@win60.DB';
+grant all privileges on *.* to winning@'172.17.*.*' identified by 'Maria@win60.DB';
 flush privileges;
 ```
 
