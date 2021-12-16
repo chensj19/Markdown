@@ -209,9 +209,9 @@ go
 ```
 
 ```sql
-RESTORE DATABASE win60 FROM DISK = '/winning/data/win60_standard_v0_20210708_1043_001.bak' 
+RESTORE DATABASE dev_aio FROM DISK = '/winning/mssql/dev_aio_backup_2021_10_31_001006_9507879.bak' 
 WITH 
-MOVE 'win60_baseline_v2' TO '/winning/data/mssql/win60/win60_baseline_v2.mdf',
-MOVE 'win60_baseline_v2_log' TO '/winning/data/mssql/win60_pdb/win60_baseline_v2_log.mdf'
+MOVE 'his_dev_ipt_202011210' TO '/winning/mssql/data/dev_aio.mdf',
+MOVE 'his_dev_ipt_202011210_log' TO '/winning/mssql/data/dev_aio_log.mdf'
 go
 ```
