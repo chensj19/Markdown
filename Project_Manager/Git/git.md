@@ -5,6 +5,11 @@
 ```bash
 git config --global user.name "chensj.dev"
 git config --global user.email "chenshijie1988@yeah.net"
+
+git config --global user.name "chensj"
+git config --global user.email "chensj@winning.com.cn"
+git config --global credential.helper store
+git config --global core.longpaths true
 ```
 
 ## Git仓库关联

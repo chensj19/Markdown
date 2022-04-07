@@ -80,14 +80,25 @@
    sudo docker cp dev_aio_backup_2021_12_29_000045_0914493.bak mssql_2019:/var/opt/mssql/backup
    docker exec -it mssql_2019 /opt/mssql-tools/bin/sqlcmd -S localhost \
       -U sa -P 'Chenshijie1988..' \
-      -Q 'RESTORE DATABASE dev_aio FROM DISK = "/var/opt/mssql/backup/dev_aio_backup_2021_12_29_000045_0914493.bak" WITH MOVE "his_dev_ipt_202011210" TO  "/var/opt/mssql/data/his_dev_ipt_202011210.mdf", MOVE "his_dev_ipt_202011210_log" TO "/var/opt/mssql/data/his_dev_ipt_202011210_log.mdf"'
+      -Q 'RESTORE DATABASE dev_aio FROM DISK = "/var/opt/mssql/backup/dev_aio_backup_2022_03_01_000151_5341516.bak" WITH MOVE "his_dev_ipt_202011210" TO  "/var/opt/mssql/data/dev_aio_20220301.mdf", MOVE "his_dev_ipt_202011210_log" TO "/var/opt/mssql/data/dev_aio_20220301_log.mdf"'
       
       
    sudo docker cp THIS4_RC_backup_2021_12_29_000055_9638284.bak mssql_2019:/var/opt/mssql/backup
    docker exec -it mssql_2019 /opt/mssql-tools/bin/sqlcmd -S localhost \
       -U sa -P 'Chenshijie1988..' \
       -Q 'RESTORE DATABASE THIS4_RC FROM DISK = "/var/opt/mssql/backup/THIS4_RC_backup_2021_12_29_000055_9638284.bak" WITH MOVE "SAMPLE_Data" TO  "/var/opt/mssql/data/THIS4_RC.mdf", MOVE "SAMPLE_Log" TO "/var/opt/mssql/data/THIS4_RC_log.mdf"'
+      
+   
+   sudo docker cp qa_aio_backup_2022_01_12_000128_7812236.bak mssql_2019:/var/opt/mssql/backup
+   docker exec -it mssql_2019 /opt/mssql-tools/bin/sqlcmd -S localhost \
+      -U sa -P 'Chenshijie1988..' \
+      -Q 'RESTORE DATABASE qa_aio FROM DISK = "/var/opt/mssql/backup/qa_aio_backup_2022_01_12_000128_7812236.bak" WITH MOVE "his_dev_ipt_202011210" TO  "/var/opt/mssql/data/qa_aio.mdf", MOVE "his_dev_ipt_202011210_log" TO "/var/opt/mssql/data/qa_aio_log.mdf"'
+   
+   sudo docker cp THIS4_LYLT_backup_2022_01_12_000128_7806782.bak mssql_2019:/var/opt/mssql/backup
+   docker exec -it mssql_2019 /opt/mssql-tools/bin/sqlcmd -S localhost \
+      -U sa -P 'Chenshijie1988..' \
+      -Q 'RESTORE DATABASE THIS4_LYLT FROM DISK = "/var/opt/mssql/backup/THIS4_LYLT_backup_2022_01_12_000128_7806782.bak" WITH MOVE "SAMPLE_Data" TO  "/var/opt/mssql/data/THIS4_LYLT.mdf", MOVE "SAMPLE_Log" TO "/var/opt/mssql/data/THIS4_LYLT_log.mdf"'
    ```
-
+   
    
 

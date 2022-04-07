@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-local_dir=$(pwd)
-curl -o win60_yum_pkgs.tar http://121.196.37.116/source/init_system/win60_yum_pkgs.tar
-curl -o data.zip http://121.196.37.116/source/db/data.zip
-curl -o databases.zip http://121.196.37.116/source/db/databases.zip
-curl -o decople.zip http://121.196.37.116/source/db/decople.zip
-curl -o fhir-register.zip http://121.196.37.116/source/db/fhir-register.zip
-curl -o fhir-drug.zip http://121.196.37.116/source/db/fhir-drug.zip
-curl -o win60_register.zip http://121.196.37.116/source/db/win60_register.zip
-curl -o win60_dcs.zip http://121.196.37.116/source/db/win60_dcs.zip
-winning_rpm_pkgs=$(find $local_dir -name 'win60_yum_pkgs*.tar')
-pkgs_dir=/data
+# local_dir=$(pwd)
+# curl -o win60_yum_pkgs.tar http://121.196.37.116/source/init_system/win60_yum_pkgs.tar
+# curl -o data.zip http://121.196.37.116/source/db/data.zip
+# curl -o databases.zip http://121.196.37.116/source/db/databases.zip
+# curl -o decople.zip http://121.196.37.116/source/db/decople.zip
+# curl -o fhir-register.zip http://121.196.37.116/source/db/fhir-register.zip
+# curl -o fhir-drug.zip http://121.196.37.116/source/db/fhir-drug.zip
+# curl -o win60_register.zip http://121.196.37.116/source/db/win60_register.zip
+# curl -o win60_dcs.zip http://121.196.37.116/source/db/win60_dcs.zip
+# winning_rpm_pkgs=$(find $local_dir -name 'win60_yum_pkgs*.tar')
+# pkgs_dir=/data
 
 # 磁盘大小最低要求(单位GB)低于指定大小将退出
 disk_min_size=100
@@ -413,11 +413,11 @@ esac
 }
 
 # -------- 脚本执行入口 --------- #
-yum_source_config
-install_base_pkgs
-config_ansible
+#yum_source_config
+#install_base_pkgs
+#config_ansible
 #config_ftp_server
-config_ntp_server
+#config_ntp_server
 #config_docker
 #check_disk_size
 Echo_Green "create ssh key"

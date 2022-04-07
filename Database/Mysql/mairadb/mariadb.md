@@ -129,7 +129,7 @@ select host,user,password from mysql.user;
 DROP DATABASE  IF EXISTS ANT;
 -- 创建脚本
 CREATE DATABASE win_log  DEFAULT CHARACTER SET UTF8 COLLATE UTF8_GENERAL_CI;
-CREATE DATABASE win_log default character set utf8mb4 collate utf8mb4_unicode_ci;
+CREATE DATABASE nacos default character set utf8mb4 collate utf8mb4_unicode_ci;
 ```
 
 ### 创建用户
