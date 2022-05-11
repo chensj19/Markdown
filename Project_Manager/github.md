@@ -6,10 +6,10 @@
 # 通过使用http://ping.chinaz.com/ ping github.com等网站获取响应最快的ip
 # Github Hosts
 # domain: github.com
-20.205.243.166 github.com
-20.205.243.165 nodeload.github.com
-20.205.243.168 api.github.com
-20.205.243.165 codeload.github.com
+15.164.81.167 github.com
+13.124.243.66 nodeload.github.com
+54.180.75.25 api.github.com
+13.124.243.66 codeload.github.com
 185.199.108.133 raw.github.com
 185.199.108.153 training.github.com
 185.199.108.153 assets-cdn.github.com
@@ -20,8 +20,8 @@
 185.199.108.153 githubstatus.com
 
 # domain: fastly.net
-#199.232.69.194 github.global.ssl.fastly.net
-31.13.95.35  github.global.ssl.fastly.net
+#31.13.95.35  github.global.ssl.fastly.net
+151.101.1.194  github.global.ssl.fastly.net
 
 # domain: githubusercontent.com
 185.199.108.133 raw.githubusercontent.com
