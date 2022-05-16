@@ -269,3 +269,39 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
+## 5、设置应用随着容器一起启动
+
+```bash
+docker ps -a |awk '/Exited/ {print $NF}' |xargs docker update --restart=always
+docker update --restart=always
+```
+
+> **在运行Docker容器时可以加如下参数来保证每次Docker服务重启后容器也自动重启：**
+>
+> **--restart=always**
+>
+> **–restart具体参数值详细信息：**
+>
+> **no：容器退出时，不重启容器；**
+>
+> **on-failure：只有在非0状态退出时才重新启动容器；**
+>
+> **always：无论退出状态是如何，都重启容器；**
+>
+> **如果已经启动了则可以使用如下命令：**
+>
+> **docker update --restart=always**
+>
+> **# 重启Docker服务应用，不自动开启Docker容器**
+>
+> **docker update --restart=no (docker容器CONTAINER ID 或 docekr容器NAMES)**
+>
+> **# 重启Docker服务应用，自动开启Docker容器**
+>
+> **docker update --restart=always (docker容器CONTAINER ID 或 docekr容器NAMES)**
+>
+> **如何判断Docker容器状态是否已启动**
+>
+> **[root@Docker ~]# docker ps -a**
+>
+> **通过这里STATUS来判断是否已启动。**
