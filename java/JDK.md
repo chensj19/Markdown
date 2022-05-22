@@ -33,3 +33,8 @@ Enter to keep the current selection[+], or type selection number: 1
 ```
 
 
+
+```bash
+jmap -dump:file=javaDump.dump,format=b 111217
+```
+
