@@ -6,7 +6,6 @@
 // 运行命令：查看所有的index的状态，发现都是yellow
 curl -XGET 'http://127.0.0.1:19200/_cat/indices?v&pretty'
 // 处理方法
-<<<<<<< HEAD
 curl -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_all/_settings' -d '
 {
     "index" : {
@@ -14,15 +13,15 @@ curl -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_all/_set
     }
 }'
 
-
+// 密码用户
 curl -u 'elastic:123456' -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_all/_settings' -d '
 {
     "index" : {
        "number_of_replicas" : 0
     }
 }'
-=======
-curl -H "Content-Type: application/json" -XPUT 'http://172.16.7.27:19200/_all/_settings' -d '{"index":{"number_of_replicas" : 0}}'
+
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '{"index":{"number_of_replicas" : 0}}'
 
 // es默认分⽚的副本数 1,这里修改默认值为 0
 PUT /_all/_settings
@@ -31,7 +30,7 @@ PUT /_all/_settings
     "number_of_replicas" : 0
   }
 }
->>>>>>> 2c03453161bb28e3751c610a191116e24f01f61d
+
 ```
 
 ## this action would add [2] total shards, 集群分片数不足
@@ -48,17 +47,6 @@ PUT /_cluster/settings
     }
   }
 }
-<<<<<<< HEAD
-
-
-curl -u 'elastic:123456' -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_cluster/settings' -d '
-{
-  "transient": {
-    "cluster": {
-      "max_shards_per_node":10000
-    }
-  }
-}'
 ```
 
 ## ES 写索引报错 FORBIDDEN/12/index read-only / allow delete (api)解决方案
@@ -72,18 +60,18 @@ curl -u 'elastic:123456' -H "Content-Type: application/json" -XPUT 'http://local
 
 ```bash
 # kibana
-POST /crazy/_doc
+POST /enc_encounter_list/_mapping
 {
   "properties":{
-    "tag":{
+    "scheduledDate":{
       "type":"text",
       "fielddata":true
     }
   }
 }
 # bash
-curl -XPOST -H "Content-Type: application/json" http://locahost:19200/crazy/_doc -d '{"properties": {"field_name":{"type":"text","fielddata": true}}}'
-=======
+curl -XPOST -H "Content-Type: application/json" http://localhost:19200/enc_encounter_list/_mapping -d '{"properties": {"scheduledDate":{"type":"text","fielddata": true}}}'
+
 ```
 
 
@@ -100,6 +88,5 @@ curl -H "Content-Type:application/json" -XPOST -u elastic:abcd1234 \
 'http://127.0.0.1:29200/_xpack/security/user/demo' \
 -d '{"email":"","username":"demo","full_name":"demo","roles":["superuser"],"enabled":true,"password":"abcd1234"}'
 
->>>>>>> 2c03453161bb28e3751c610a191116e24f01f61d
 ```
 
