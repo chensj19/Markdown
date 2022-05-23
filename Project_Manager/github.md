@@ -6,10 +6,10 @@
 # 通过使用http://ping.chinaz.com/ ping github.com等网站获取响应最快的ip
 # Github Hosts
 # domain: github.com
-15.164.81.167 github.com
-13.124.243.66 nodeload.github.com
-54.180.75.25 api.github.com
-13.124.243.66 codeload.github.com
+52.78.231.108   github.com
+13.124.243.66   nodeload.github.com
+54.180.75.25    api.github.com
+52.68.31.213    codeload.github.com
 185.199.108.133 raw.github.com
 185.199.108.153 training.github.com
 185.199.108.153 assets-cdn.github.com
