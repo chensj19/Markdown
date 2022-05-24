@@ -91,3 +91,19 @@ mvn help:effective-settings -Dnetease=central
 
 测试无误。
 
+
+
+## 3.8.x maven-default-http-blocker (http://0.0.0.0/): Blocked mirror for repositorie
+
+解决方案：
+
+方案1：替换使用的Maven为3.6.3版本https://dlcdn.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip
+
+方案2：
+当idea加载外部配置文件时会优先加载安装目录下\plugins\maven\lib\maven3\conf文件夹内的settings.xml，注释该文件中maven-default-http-blocker配置
+
+![img](maven.assets/img.png)
+
+![img](maven.assets/settings.png)
+
+ ***记得需要重启IDEA！不然还是修改前的配置。***
