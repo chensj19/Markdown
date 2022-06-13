@@ -6,7 +6,7 @@
 // 运行命令：查看所有的index的状态，发现都是yellow
 curl -XGET 'http://127.0.0.1:19200/_cat/indices?v&pretty'
 // 处理方法
-curl -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_all/_settings' -d '
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '
 {
     "index" : {
        "number_of_replicas" : 0
@@ -38,7 +38,7 @@ PUT /_all/_settings
 es 默认只允许1000个分片，问题是因为集群分片数不足引起的。现在在elasticsearch.yml中定义
 
 ```bash
-curl -u elastic:abcd1234 -H "Content-Type: application/json" -XPUT 'http://127.0.0.1:29200/_cluster/settings' -d '{"transient": {"cluster": {"max_shards_per_node":10000}}}'
+curl -u elastic:abcd1234 -H "Content-Type: application/json" -XPUT 'http://127.0.0.1:19200/_cluster/settings' -d '{"transient": {"cluster": {"max_shards_per_node":10000}}}'
 
 PUT /_cluster/settings
 {"transient": {

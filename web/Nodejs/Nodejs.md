@@ -1,7 +1,7 @@
 ## node 配置
 ```bash
-npm config set prefix "D:\software\nodejs\node_global"
-npm config set cache "D:\software\nodejs\node_cache"
+npm config set prefix "D:\tools\node_repo\node_global"
+npm config set cache "D:\tools\node_repo\node_cache"
 ```
 ## path配置
 + 在`【系统变量】`下新建`【NODE_PATH】`，输入
