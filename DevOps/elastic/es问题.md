@@ -38,7 +38,7 @@ PUT /_all/_settings
 es 默认只允许1000个分片，问题是因为集群分片数不足引起的。现在在elasticsearch.yml中定义
 
 ```bash
-curl -u elastic:abcd1234 -H "Content-Type: application/json" -XPUT 'http://127.0.0.1:19200/_cluster/settings' -d '{"transient": {"cluster": {"max_shards_per_node":10000}}}'
+curl -u elastic:abcd1234 -H "Content-Type: application/json" -XPUT 'http://127.0.0.1:19200/_cluster/settings' -d '{"transient": {"cluster": {"max_shards_per_node":100000}}}'
 
 PUT /_cluster/settings
 {"transient": {
@@ -70,11 +70,20 @@ POST /enc_encounter_list/_mapping
   }
 }
 # bash
-curl -XPOST -H "Content-Type: application/json" http://localhost:19200/enc_encounter_list/_mapping -d '{"properties": {"scheduledDate":{"type":"text","fielddata": true}}}'
+curl -XPOST -H "Content-Type: application/json" http://localhost:19200/testenc_encounter_list/_mapping -d '{"properties": {"scheduledDate":{"type":"text","fielddata": true}}}'
 
 ```
 
+## 删除全部删除
 
+```bash
+# kibana
+DELETE /_all
+DELETE /aaio_*
+
+# bash
+curl -XDELETE "http://localhost:19200/_all"
+```
 
 
 
