@@ -9,7 +9,10 @@ git config --global user.email "chenshijie1988@yeah.net"
 git config --global user.name "chensj"
 git config --global user.email "chensj@winning.com.cn"
 git config --global credential.helper store
+# 文件名称超出问题
 git config --global core.longpaths true
+# unsafe repository
+git config --global --add safe.directory "*"
 ```
 
 ## Git仓库关联
