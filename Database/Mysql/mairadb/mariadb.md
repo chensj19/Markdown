@@ -1,10 +1,4 @@
-
-
-
-
-
-
-# Mariadb 
+# Mariadb
 
 ## CentOS 安装
 
@@ -69,7 +63,7 @@ slow_query_log
 slow_query_log_file=/var/log/mysql/mariadb-slow.log
 ```
 
-#### 4.2  MariaDB的相关简单配置 
+#### 4.2  MariaDB的相关简单配置
 
 ```bash
 mysql_secure_installation
@@ -140,11 +134,10 @@ grant all privileges on *.* to winning@'%' identified by 'Maria@win60.DB';
 flush privileges;
 ```
 
-#### 命令行直接创建
+#### 命令行直接创建用户
 
 ```bash
 mariadb -h localhost -u root -e "create user winning@'%' identified by 'Maria@win60.DB'"
 mariadb -h localhost -u root -e "grant all privileges on *.* to winning@'%' identified by 'Maria@win60.DB'"
 mariadb -h localhost -u root -e "flush privileges"
 ```
-
