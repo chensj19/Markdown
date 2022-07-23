@@ -140,3 +140,11 @@ grant all privileges on *.* to winning@'%' identified by 'Maria@win60.DB';
 flush privileges;
 ```
 
+#### 命令行直接创建
+
+```bash
+mariadb -h localhost -u root -e "create user winning@'%' identified by 'Maria@win60.DB'"
+mariadb -h localhost -u root -e "grant all privileges on *.* to winning@'%' identified by 'Maria@win60.DB'"
+mariadb -h localhost -u root -e "flush privileges"
+```
+

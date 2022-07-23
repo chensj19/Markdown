@@ -6,12 +6,7 @@
 // 运行命令：查看所有的index的状态，发现都是yellow
 curl -XGET 'http://127.0.0.1:19200/_cat/indices?v&pretty'
 // 处理方法
-curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '
-{
-    "index" : {
-       "number_of_replicas" : 0
-    }
-}'
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '{ "index" : { "number_of_replicas" : 0 } }'
 
 // 密码用户
 curl -u 'elastic:123456' -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_all/_settings' -d '
@@ -39,6 +34,8 @@ es 默认只允许1000个分片，问题是因为集群分片数不足引起的�
 
 ```bash
 curl -u elastic:abcd1234 -H "Content-Type: application/json" -XPUT 'http://127.0.0.1:19200/_cluster/settings' -d '{"transient": {"cluster": {"max_shards_per_node":100000}}}'
+
+curl -H "Content-Type: application/json" -XPUT 'http://127.0.0.1:19200/_cluster/settings' -d '{"transient": {"cluster": {"max_shards_per_node":100000}}}'
 
 PUT /_cluster/settings
 {"transient": {
@@ -70,7 +67,7 @@ POST /enc_encounter_list/_mapping
   }
 }
 # bash
-curl -XPOST -H "Content-Type: application/json" http://localhost:19200/testenc_encounter_list/_mapping -d '{"properties": {"scheduledDate":{"type":"text","fielddata": true}}}'
+curl -XPOST -H "Content-Type: application/json" http://localhost:19200/enc_encounter_list/_mapping -d '{"properties": {"scheduledDate":{"type":"text","fielddata": true}}}'
 
 ```
 
