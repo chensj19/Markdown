@@ -101,6 +101,8 @@ curl -H "Content-Type:application/json" -XPOST -u elastic:abcd1234 \
 ```bash
 curl -XPUT -H "Content-Type: application/json" http://localhost:19200/_all/_settings -d '{"index.blocks.read_only_allow_delete": null}'
 
+curl -XPUT -H "Content-Type: application/json" http://127.0.0.1:19200/cli_search_medicine/_settings -d '{"index.blocks.read_only_allow_delete": null}'
+
 curl -XPOST 'http://localhost:19200/_forcemerge?only_expunge_deletes=true'
 ```
 
@@ -109,10 +111,10 @@ curl -XPOST 'http://localhost:19200/_forcemerge?only_expunge_deletes=true'
 #### 修改最大硬盘使用率
 
 ```bash
-curl -XPUT localhost:19200/_cluster/settings -d '{
+curl -XPUT -H "Content-Type: application/json" http://localhost:19200/_cluster/settings -d '{
     "transient" : {
-        "cluster.routing.allocation.disk.watermark.low" : "85%",
-        "cluster.routing.allocation.disk.watermark.high" : "90%",
+        "cluster.routing.allocation.disk.watermark.low" : "90%",
+        "cluster.routing.allocation.disk.watermark.high" : "95%",
         "cluster.info.update.interval" : "1m"
     }
 }'
