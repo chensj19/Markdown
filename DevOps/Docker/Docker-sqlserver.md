@@ -24,27 +24,28 @@
    curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io
    ```
 
-1. 拉取镜像
+2. 拉取镜像
 
    ```bash
    # 2017
    sudo docker pull mcr.microsoft.com/mssql/server:2017-latest
    #2019
    sudo docker pull mcr.microsoft.com/mssql/server:2019-latest
+   ```
 
 2. 启动
 
    ```bash
-   docker run --name mssql_2019 \
-      -h mssql_2019 \
+   docker run --name mssql \
+      -h mssql --restart=always\
       -e ACCEPT_EULA='Y' \
-      -e SA_PASSWORD='Chenshijie1988..' \
+      -e SA_PASSWORD='Winning2019..' \
       -e MSSQL_LCID=2052 \
       -e MSSQL_COLLATION='Chinese_PRC_BIN' \
       -e MSSQL_DATA_DIR='/var/opt/mssql/data' \
       -e MSSQL_BACKUP_DIR='/var/opt/mssql/backup' \
       -e MSSQL_LOG_DIR='/var/opt/mssql/data' \
-      -p 51433:1433 \
+      -p 1433:1433 \
       --privileged=true \
       -v mssql_data_2019:/var/opt/mssql \
       -d mcr.microsoft.com/mssql/server:2019-latest

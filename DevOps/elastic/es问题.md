@@ -6,7 +6,9 @@
 // 运行命令：查看所有的index的状态，发现都是yellow
 curl -XGET 'http://127.0.0.1:19200/_cat/indices?v&pretty'
 // 处理方法
-curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '{ "index" : { "number_of_replicas" : 0 } }'
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '{ "index" : { "number_of_replicas" : 0} }'
+// 一般以（节点数*1.5或3倍）来计算，比如有4个节点，分片数量一般是6个到12个，每个分片一般分配一个副本
+curl -H "Content-Type: application/json" -XPUT 'http://localhost:19200/_all/_settings' -d '{ "index" : { "number_of_replicas" : 1, "number_of_shards" : 3 } }'
 
 // 密码用户
 curl -u 'elastic:123456' -H "Content-Type: application/json" -XPUT 'http://localhost:29200/_all/_settings' -d '
@@ -99,7 +101,7 @@ curl -H "Content-Type:application/json" -XPOST -u elastic:abcd1234 \
 ## 文件空间不足时候清理空间后处理
 
 ```bash
-curl -XPUT -H "Content-Type: application/json" http://localhost:19200/_all/_settings -d '{"index.blocks.read_only_allow_delete": null}'
+curl -XPUT -H "Content-Type: application/json" http://localhost:19200/_all/_settings -d '{"index.blocks.read_only_allow_delete": null,"index.blocks.read_only": null}'
 
 curl -XPOST 'http://localhost:19200/_forcemerge?only_expunge_deletes=true'
 ```
@@ -109,10 +111,10 @@ curl -XPOST 'http://localhost:19200/_forcemerge?only_expunge_deletes=true'
 #### 修改最大硬盘使用率
 
 ```bash
-curl -XPUT localhost:19200/_cluster/settings -d '{
+curl -XPUT -H "Content-Type: application/json"  http://localhost:19200/_cluster/settings -d '{
     "transient" : {
         "cluster.routing.allocation.disk.watermark.low" : "85%",
-        "cluster.routing.allocation.disk.watermark.high" : "90%",
+        "cluster.routing.allocation.disk.watermark.high" : "95%",
         "cluster.info.update.interval" : "1m"
     }
 }'
