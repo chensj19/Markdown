@@ -3,23 +3,24 @@ Docker常用中间件安装
 ## neo4j
 
 ```bash
-docker pull neo4j:3.5.9
-mkdir -p /data/neo4j/{data,conf,logs}
-docker run -d --name neo4j -h neo4j  --restart=always \
+sudo docker pull neo4j:3.5.9
+mkdir -p /home/chensj/docker/neo4j/{data,conf,logs}
+sudo docker run -d --name neo4j -h neo4j  --restart=always \
   -p 7474:7474 -p 7687:7687 \
-  -v /data/neo4j/data:/data \
-  -v /data/neo4j/conf:/conf \
-  -v /data/neo4j/logs:/logs \
+  -v /home/chensj/docker/neo4j/data:/data \
+  -v /home/chensj/docker/neo4j/conf:/conf \
+  -v /home/chensj/docker/neo4j/logs:/logs \
   -e "NEO4J_dbms_default__database=graph.db" \
   neo4j:3.5.9
 # 备份文件还原 
-docker cp databases neo4j:/data/
-docker exec -it neo4j bash 
+sudo docker cp database neo4j:/data/
+sudo docker exec -it neo4j bash 
 cd /data/
 chown -R neo4j:neo4j ./*
 exit
-docker restart neo4j
--- win.2019
+sudo docker stop neo4j
+sudo docker start neo4j
+
 # neo4j 4
 docker pull neo4j
 mkdir -p /data/neo4j/{data,conf,logs}
@@ -35,21 +36,23 @@ docker run -d --name neo4j -h neo4j \
 ## minio
 
 ```bash
-docker pull minio/minio
-mkdir -p /data/minio/{config,data}
-docker run -p 9000:9000 -p 9001:9001 \
+sudo docker pull minio/minio
+mkdir -p  /home/chensj/docker/minio/{config,data}
+sudo docker run -p 9000:9000 -p 9001:9001 \
            --name minio -d --restart=always  \
            -e "MINIO_ACCESS_KEY=www.winning.com.cn" \
            -e "MINIO_SECRET_KEY=www.winning.com.cn" \
-           -v /data/minio/data:/data \
-           -v /data/minio/config:/root/.minio minio/minio \
-           server /data --console-address ":9001" -address ":9000"
-# 宿主机执行           
-rm -rf /data/minio/data
-cp data.zip /data/minio
-cd /data/minio
+           -v /home/chensj/docker/minio/data:/data \
+           -v /home/chensj/docker/minio/config:/root/.minio minio/minio \
+           server /data --console-address ":9001" -address ":9000" 
+sudo docker cp data.zip minio:/data
+sudo docker exec -it minio bash            
+cp data.zip /data/
 unzip data.zip
-docker restart minio
+cd /data/data
+mv * ../
+docker stop minio
+docker start minio
 ```
 
 ## Xxl-job
@@ -58,12 +61,12 @@ docker restart minio
 mkdir -p /data/xxl-job
 docker pull xuxueli/xxl-job-admin:2.0.2
 docker run --restart always --name xxl-job \
--e PARAMS="--spring.datasource.url=jdbc:mysql://192.168.31.192:3306/xxl-job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai \
---spring.datasource.username=winning \
---spring.datasource.password=Maria@win60.DB \
+-e PARAMS="--spring.datasource.url=jdbc:mysql://192.168.31.144:3306/xxl-job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai \
+--spring.datasource.username=root \
+--spring.datasource.password=r \
 --server.context-path=/ "\
  -p 18080:8080 \
- -v /data/xxl-job:/data/applogs \
+ -v /data/xxl-job/:/data/applogs \
  --name xxl-job  -d xuxueli/xxl-job-admin:2.0.2
 ```
 
@@ -77,13 +80,37 @@ docker search mariadb
 # 拉取mariadb数据库
 docker pull mariadb
 # 创建msyql到本地的数据文件夹映射路径
-mkdir -p /docker/data/mariadb
+mkdir -p /home/chensj/docker/mariadb
 #  启动mariadb容器
-docker run --name mariadb -p 3306:3306 --restart always \
+sudo docker run --name mariadb -p 3306:3306 --restart always \
            -e MYSQL_ROOT_PASSWORD=root \
-           -v /docker/data/mariadb:/var/lib/mysql -d mariadb
+           -v /home/chensj/docker/mariadb/my.cnf:/etc/mysql/my.cnf -d mariadb
+sudo docker run --name mariadb -p 3306:3306 --restart always \
+		   -e MARIADB_USER=root \
+           -e MARIADB_PASSWORD=root \
+           -e MARIADB_ROOT_PASSWORD=root \
+           -v /home/chensj/docker/mariadb/my.cnf:/etc/mysql/my.cnf -d mariadb
 # -e MYSQL_ROOT_PASSWORD=root 赋值mysql的量，来设置root用户的密码为root
+#  设置容器自启动随docker的启动而启动
+docker container update --restart=always d72e7e910ab6
 ```
+
+my.cnf
+
+```bash
+[client]
+default-character-set=utf8
+[mysql]
+default-character-set=utf8
+[mysqld]
+init_connect='SET collation_connection = utf8_unicode_ci'
+init_connect='SET NAMES utf8'
+character-set-server=utf8
+collation-server=utf8_unicode_ci
+skip-character-set-client-handshake
+```
+
+
 
 ## postgresql
 
@@ -100,16 +127,16 @@ docker run -h postgres --name postgres --restart always \
            -v /data/postgres/data5x:/var/lib/postgresql \
            -p 15432:5432 -d postgres
 # 5x           
-docker run -h pg --name pg --restart always \
+docker run -h pg5x --name pg5x --restart always \
            -e POSTGRES_PASSWORD='winning' \
            -e ALLOW_IP_RANGE=0.0.0.0/0 \
-           -v /data/postgres/data:/var/lib/postgresql \
-           -p 5432:5432 -d postgres
+           -v /data/postgres/data5x:/var/lib/postgresql \
+           -p 15433:5432 -d postgres
            
 # 拷贝文件           
-docker cp db_bak.sql pg:/var/lib/postgresql/
+docker cp db_bak.sql postgres:/var/lib/postgresql/
 # 修改配置
-docker cp pg:/var/lib/postgresql/data/pg_hba.conf ./
+docker cp postgres:/var/lib/postgresql/data/pg_hba.conf ./
 vim pg_hba.conf
 ```
 
@@ -136,18 +163,24 @@ host all all all scram-sha-256
 ```
 
 ```bash
-docker cp pg_hba.conf  pg:/var/lib/postgresql/data/pg_hba.conf
+docker cp pg_hba.conf  postgres:/var/lib/postgresql/data/pg_hba.conf
 # psql 执行 创建用户，创建数据库
 # 进入容器
-docker exec -it pg bash;
+docker exec -it postgres bash;
 # 切换用户
 su postgres;
 # 进入psql
 psql
 # 创建用户 数据库 赋权
+```
+
+```sql
 create user winning superuser password 'winning';
 create database win60_dcs;
 GRANT ALL PRIVILEGES ON DATABASE win60_dcs to winning;
+```
+
+```bash
 # 数据库还原
 # 备份脚本
 pg_dump -h 127.0.0.1 -p 5432 -U winning win60_dcs >db_bak.sql
@@ -159,7 +192,7 @@ psql -h localhost -U winning -d win60_dcs < db_bak.sql
 
 ```bash
 docker pull rabbitmq:management
-docker run -d -h rabbitmq --name rabbitmq --restart always \
+docker run -d -h rabbitmq --name rabbitmq \
            -e RABBITMQ_DEFAULT_USER=admin \
            -e RABBITMQ_DEFAULT_PASS=win.2019 \
            -p 15672:15672 -p 5672:5672 \
@@ -180,16 +213,14 @@ docker run -d --hostname rabbit --name rabbit -p 15672:15672-p 5673:5672 rabbitm
 
 ```bash
 docker pull elasticsearch:7.4.2
-mkdir -p /data/es/data
-chmod -R 777 /data/es
-docker run -d --name es -h es --restart=always\
+docker run -d --name es52 -h es52 --restart=always\
            -p 19200:9200 -p 19300:9300 \
-           -v /data/es/data:/usr/share/elasticsearch/data \
+           -v /data/elasticsearch/es52:/usr/share/elasticsearch/data \
            -e "discovery.type=single-node" \
-           -e "node.name=es_docker_1" \
+           -e "node.name=192.168.31.144" \
            -e "cluster.name=winning_elasticsearch" \
            -e "bootstrap.memory_lock=true" \
-           -e "'ES_JAVA_OPTS=-Xms8g -Xmx16g'" \
+           -e "'ES_JAVA_OPTS=-Xms1g -Xmx16g'" \
            elasticsearch:7.4.2
            
 # 配置密码的es 
@@ -266,13 +297,13 @@ curl -H 'Content-type: application/json' -u "elastic:123456" -XDELETE "http://12
 ## Default Kibana configuration for docker target
 server.name: kibana
 server.host: 0.0.0.0
-elasticsearch.hosts: [ "http://192.168.31.192:19200" ]
+elasticsearch.hosts: [ "http://192.168.31.144:19200" ]
 xpack.monitoring.ui.container.elasticsearch.enabled: true
 
 ## 用户名和密码模式
 erver.name: kibana
 server.host: 0.0.0.0
-elasticsearch.hosts: [ "http://192.168.31.192:29200" ]
+elasticsearch.hosts: [ "http://192.168.31.144:29200" ]
 #xpack.monitoring.ui.container.elasticsearch.enabled: true
 elasticsearch.username: elastic
 elasticsearch.password: abcd1234
@@ -281,9 +312,10 @@ elasticsearch.password: abcd1234
 ```bash
 # 无密码 kibana
 docker pull kibana:7.4.2
-docker run -d --name kibana -h kibana --restart=always  \
+docker run -d --name kibana52 -h kibana52 \
            -p 5601:5601 \
-           -v /data/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml \
+           -v /data/kibana/config52:/usr/share/kibana/config \
+           -e "ELASTICSEARCH_HOSTS=http://192.168.31.144:19200" \
            kibana:7.4.2
            
 # 有密码 kibana
@@ -292,7 +324,7 @@ docker run -d --name kibana_pwd -h kibana_pwd \
            --restart=always --net es_net \
            -p 15601:5601 \
            -v /data/kibana/config_pwd:/usr/share/kibana/config \
-           -e "ELASTICSEARCH_HOSTS=http://192.168.31.192:29200" \
+           -e "ELASTICSEARCH_HOSTS=http://192.168.31.144:29200" \
            kibana:7.6.2
 ```
 
@@ -311,11 +343,14 @@ docker run -p 9800:9800 \
 ## consul
 
 ```bash
-mkdir -p /data/consul/{data,config}
+mkdir -p /data/consul/data
+mkdir -p /data/consul/config
 docker pull consul
-docker run  -d -h consul --name consul -p 8500:8500 --restart=always \
+docker run  -d -p 8500:8500 \
             -v /data/consul/data:/consul/data \
             -v /data/consul/config:/consul/config \
+            --name consul \
+            -h consul \
             consul
 ```
 
@@ -324,7 +359,8 @@ docker run  -d -h consul --name consul -p 8500:8500 --restart=always \
 [配置文件](http://download.redis.io/redis-stable/redis.conf)
 
 ```bash
-mkdir -p /data/redis/{data,conf,logs}
+mkdir -p /data/redis/data
+mkdir -p /data/redis/conf
 docker pull redis
 # 简版
 docker run  -d -p 6379:6379 \
@@ -333,12 +369,12 @@ docker run  -d -p 6379:6379 \
             -h redis \
             redis
 # 配置版本
-docker run  -d -p 6379:6379  --restart=always \
-            --name redis \
+docker run  -d -p 6379:6379 \
+            --name redis_conf \
             -v /data/redis/data:/data \
             -v /data/redis/conf/redis.conf:/etc/redis/redis.conf \
-            -v /data/redis/logs:/var/logs \
-            -h redis redis \
+            -h redis_conf \
+            redis \
             redis-server /etc/redis/redis.conf
 ```
 
@@ -355,68 +391,6 @@ docker run  -d -p 6379:6379  --restart=always \
 > dir  ./ #输入本地redis数据库存放文件夹（可选）
 >
 > appendonly yes #redis持久化（可选）
-
-```bash
-bind 0.0.0.0
-protected-mode no
-port 6379
-tcp-backlog 511
-requirepass winning.2019
-masterauth winning.2019
-timeout 0
-tcp-keepalive 300
-daemonize no
-supervised no
-pidfile /var/run/redis_6379.pid
-loglevel notice
-logfile ""
-databases 30
-always-show-logo yes
-save 900 1
-save 300 10
-save 60 10000
-stop-writes-on-bgsave-error yes
-rdbcompression yes
-rdbchecksum yes
-dbfilename dump.rdb
-dir ./
-replica-serve-stale-data yes
-replica-read-only yes
-repl-diskless-sync no
-repl-disable-tcp-nodelay no
-replica-priority 100
-lazyfree-lazy-eviction no
-lazyfree-lazy-expire no
-lazyfree-lazy-server-del no
-replica-lazy-flush no
-appendonly yes
-appendfilename "appendonly.aof"
-no-appendfsync-on-rewrite no
-auto-aof-rewrite-percentage 100
-auto-aof-rewrite-min-size 64mb
-aof-load-truncated yes
-aof-use-rdb-preamble yes
-lua-time-limit 5000
-slowlog-max-len 128
-notify-keyspace-events ""
-hash-max-ziplist-entries 512
-hash-max-ziplist-value 64
-list-max-ziplist-size -2
-list-compress-depth 0
-set-max-intset-entries 512
-zset-max-ziplist-entries 128
-zset-max-ziplist-value 64
-hll-sparse-max-bytes 3000
-stream-node-max-bytes 4096
-stream-node-max-entries 100
-activerehashing yes
-hz 10
-dynamic-hz yes
-aof-rewrite-incremental-fsync yes
-rdb-save-incremental-fsync yes
-```
-
-
 
 
 ## rocketmq
