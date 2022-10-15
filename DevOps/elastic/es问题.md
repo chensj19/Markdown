@@ -81,7 +81,7 @@ DELETE /_all
 DELETE /aaio_*
 
 # bash
-curl -XDELETE "http://localhost:19200/_all"
+curl -XDELETE "http://localhost:19200/aaio-dev1__*"
 ```
 
 
@@ -116,10 +116,54 @@ curl -XPOST 'http://localhost:19200/_forcemerge?only_expunge_deletes=true'
 
 curl -XPUT -H "Content-Type: application/json" http://localhost:19200/_cluster/settings -d '{
     "transient" : {
-        "cluster.routing.allocation.disk.watermark.low" : "85%",ßß÷
+        "cluster.routing.allocation.disk.watermark.low" : "85%",
         "cluster.routing.allocation.disk.watermark.high" : "95%",
         "cluster.info.update.interval" : "1m"
     }
 }'
+```
+
+
+
+## 重启es服务
+
+```bash
+# 重启前需要将索引锁定
+curl -XPUT 'http://localhost:19200/_cluster/settings' -d '{
+"transient" : {
+"cluster.routing.allocation.enable" : "all"
+}
+}' -H 'Content-Type: application/json'
+```
+
+
+
+```bash
+# 默认配置 elasticsearch.yml
+cluster.name: winning_elasticsearch
+node.name: 172.20.64.79
+path.data: /winning/winmid/elasticsearch/data
+path.logs: /winning/winmid/elasticsearch/logs
+path.repo: /winning/winmid/elasticsearch/repo
+network.host: 0.0.0.0
+http.port: 19200
+transport.tcp.port: 19300
+discovery.seed_hosts: ['172.20.64.79:19300']
+cluster.initial_master_nodes: ['172.20.64.79']
+
+# es登录
+#xpack.security.enabled: true
+#xpack.security.transport.ssl.enabled: true
+#xpack.security.transport.ssl.verification_mode: certificate
+#xpack.security.transport.ssl.keystore.path: es-certificates.p12
+#xpack.security.transport.ssl.truststore.path: es-certificates.p12
+
+# 允许跨域请求
+http.cors.enabled: true
+http.cors.allow-origin: '*'
+http.cors.allow-credentials: true
+
+# 最大查询数量
+indices.query.bool.max_clause_count: 10240
 ```
 
