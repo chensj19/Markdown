@@ -41,6 +41,7 @@
       -e ACCEPT_EULA='Y' \
       -e SA_PASSWORD='Winning2019..' \
       -e MSSQL_LCID=2052 \
+      -e TZ='Asia/Shanghai' \
       -e MSSQL_COLLATION='Chinese_PRC_BIN' \
       -e MSSQL_DATA_DIR='/var/opt/mssql/data' \
       -e MSSQL_BACKUP_DIR='/var/opt/mssql/backup' \
