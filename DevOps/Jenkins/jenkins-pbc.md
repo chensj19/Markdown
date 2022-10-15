@@ -1,0 +1,69 @@
+```jenkinsfile
+/*Jenkinsfile (Declarative Pipeline)
+jar_CICD_pipeline 版本一
+*/
+pipeline {
+    agent { 
+        node { label '7.52'} 
+    }
+    parameters {
+        string(name:'BRANCH_NAME', defaultValue: 'develop', description: 'git分支名称')
+        string(name:'COMMIT_ID', description: '提交记录id')
+        string(name:'GIT_URL', defaultValue: '', description: '仓库地址')
+        string(name:'FEEDBACK_URL', description: 'JOB反馈地址，一般为pre_post和post时触发')
+        string(name:'ARTIFACTS_PATH', defaultValue: '', description: '制品文件路径')
+        string(name:'J_BUILD_ID', description: '发起平台构建队列ID')
+        string(name:'CREDENTIALS_ID', description: 'GIT凭证ID')
+        string(name:'MAVEN_GOALS',  defaultValue: '', description: 'MAVEN_GOALS')
+        string(name:'SELECTED_MODULES', defaultValue: 'all', description: '选择构建的模块')
+        string(name:'APP_NAME',  description: '应用仓库的名称')
+        string(name:'BUILD_MODE',  defaultValue: 'winex', description: '构建模式')
+        string(name:'COVER_BUILD',  defaultValue: 'false', description: '是否覆盖构建')
+    }
+    stages {
+        stage("report") {
+            steps {
+                sh '''
+                    curl -X POST "${FEEDBACK_URL}?build_id=${J_BUILD_ID}&build_number=${BUILD_NUMBER}&build_status=PROCESS"
+                '''
+            }
+        }
+        stage ("build"){
+            steps {
+                sh '''
+                    mkdir -p /winning/new_ci_test
+                    cd  /winning/new_ci_test
+                    build_cmd="java -jar tmts_cdp_integer-1.0.2-SNAPSHOT.jar --app_define_path=/winning/new_ci_test/${BRANCH_NAME}_${APP_NAME}/app_define_path/ --spring.config.location=application-ci-refactor.properties --appName=${APP_NAME}  --targetPath=/winning/new_ci_test/${BRANCH_NAME}_${APP_NAME}/result/ --workPath=/winning/new_ci_test/${BRANCH_NAME}_${APP_NAME} --SELECTED_MODULES=$SELECTED_MODULES --BUILD_MODE=$BUILD_MODE --COVER_BUILD=$COVER_BUILD --BRANCH_NAME=${BRANCH_NAME}"
+                    echo "build_cmd:$build_cmd"
+                    java -Xmx12g -jar /root/new_ci_test/tmts_cdp_integer-1.0.2-SNAPSHOT.jar --app_define_path=/winning/new_ci_test/${BRANCH_NAME}_${APP_NAME}/app_define_path/ --appName=${APP_NAME} --spring.config.location=/root/new_ci_test/application-ci-refactor.properties  --targetPath=/winning/new_ci_test/${BRANCH_NAME}_${APP_NAME}/result/ --workPath=/winning/new_ci_test/${BRANCH_NAME}_${APP_NAME} --SELECTED_MODULES=$SELECTED_MODULES --BUILD_MODE=$BUILD_MODE --COVER_BUILD=$COVER_BUILD  --BRANCH_NAME=${BRANCH_NAME}
+                '''
+            }
+            
+        }
+    }
+    post {
+        failure {
+            sh '''
+                curl -X POST "${FEEDBACK_URL}?build_id=${J_BUILD_ID}&build_number=${BUILD_NUMBER}&build_status=FAILURE&build_msg=构建失败"
+            '''
+        }
+
+        success {
+            sh '''
+                cd /winning/new_ci_test/${BRANCH_NAME}_${APP_NAME}/result/
+                current_time=$(date "+%Y%m%d%H%M")
+                zip -q -r ${APP_NAME}-$current_time.zip modules
+                md5=`md5sum ${APP_NAME}-$current_time.zip | awk '{print $1}'`
+                T_FILE_SIZE=`ls -l ./${APP_NAME}-$current_time.zip | awk '{print $5}'`
+                BUILD_VERSION=${APP_NAME}-${current_time}
+                curl -X POST "${FEEDBACK_URL}?build_id=${J_BUILD_ID}&build_number=${BUILD_NUMBER}&build_status=SUCCESS&build_version=${BUILD_VERSION}"
+                curl -F "file=@${APP_NAME}-$current_time.zip"  -X POST "http://172.16.0.197:8089/cloud/allupload?build_id=${J_BUILD_ID}&filename=${APP_NAME}-$current_time.zip&appprogram=${APP_NAME}&channel=base&branch=${BRANCH_NAME}&commitId=${COMMIT_ID}&filesize=$T_FILE_SIZE&md5=$md5"
+                rm -rf ${APP_NAME}-$current_time.zip
+            '''
+
+            cleanWs()
+        }
+    }     
+ }
+```
+
